@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Performance Panel for Google Sheets
 // @namespace    urn:sheets-scope:userscript
-// @version      0.3.19
+// @version      0.3.20
 // @description  Нативная панель производительности Google Таблиц: пересчёт листа и медленные ячейки.
 // @match        https://docs.google.com/spreadsheets/*
 // @run-at       document-start
@@ -11,24 +11,383 @@
 // @noframes
 // ==/UserScript==
 (function() {
+	//#endregion
+	//#region userscript/src/ui/i18n.js
+	var dictionaries = { en: {
+		"Эффективность таблицы": "Spreadsheet performance",
+		"Результаты": "Results",
+		"Результат": "Result",
+		"Эффективность": "Performance",
+		"Запустите расчёт, чтобы увидеть время.": "Run a calculation to see the timing.",
+		"Результаты вычислений": "Calculation results",
+		"Адрес недоступен": "Address unavailable",
+		"Правило проверки недоступно": "Validation rule unavailable",
+		"Правило форматирования недоступно": "Formatting rule unavailable",
+		"Формула не загружена": "Formula not loaded",
+		"Для этого листа и типа в доступных замерах нет результатов.": "No measurements for this sheet and type yet.",
+		"Область результатов": "Result scope",
+		"Включая ячейки других листов из этого расчёта": "Including cells on other sheets from this calculation",
+		"Со связями": "With linked sheets",
+		"Вся таблица": "Whole spreadsheet",
+		"Лист для расчёта": "Sheet to calculate",
+		"Найти лист…": "Find a sheet…",
+		"Показать листы": "Show sheets",
+		"Листы не найдены": "No sheets found",
+		"Лист недоступен": "Sheet unavailable",
+		"Последнее изменение": "Latest change",
+		"С момента открытия": "Since opening",
+		"Период замеров": "Measurement period",
+		"Последнее обновление результатов": "Results last updated",
+		"Все типы вычислений": "All calculation types",
+		"Все типы": "All types",
+		"Тип вычислений": "Calculation type",
+		"{count} из {limit} ячеек": "{count} of {limit} cells",
+		"Данные недоступны": "Data unavailable",
+		"Число ячеек": "Cell count",
+		"из": "of",
+		"Распределение времени по этапам": "Time by stage",
+		"Общий расчёт": "Total calculation",
+		"Известное время": "Known time",
+		"времени — {phase}": "of the time is {phase}",
+		"Свернуть формулу {address}": "Collapse formula {address}",
+		"Раскрыть формулу {address}": "Expand formula {address}",
+		"О показателе «{label}»": "About “{label}”",
+		"Идёт расчёт": "Calculating",
+		"Производительность таблицы": "Spreadsheet performance",
+		"{value} с": "{value} s",
+		"{value} мс": "{value} ms",
+		"Формулы": "Formulas",
+		"Формат": "Formatting",
+		"Условное форматирование": "Conditional formatting",
+		"Проверка": "Validation",
+		"Проверка данных": "Data validation",
+		"Таблицы": "Tables",
+		"Объекты": "Objects",
+		"Служебные ячейки": "Service cells",
+		"Загрузка": "Loading",
+		"Неизвестный тип": "Unknown type",
+		"Тип {type}": "Type {type}",
+		"неизвестен": "unknown",
+		"О замерах": "About the measurements",
+		"Об инструменте": "About this tool",
+		"Закрыть справку": "Close help",
+		"Расчёт и замеры выполняет Google. Иконка панели открывает штатный инструмент.": "Google does the calculating and measuring. The panel icon opens Google’s own tool.",
+		"Макет с демо-данными.": "Demo with sample data.",
+		"«Пересчитать» — запускает расчёт выбранного листа; связанные листы тоже могут затронуться.": "“Recalculate” runs the selected sheet; linked sheets may recalculate too.",
+		"«Со связями» — показывает полученные замеры ячеек других листов.": "“With linked sheets” also shows cells from other sheets.",
+		"Время ячейки — её самый долгий замер за период; повторы не складываются.": "A cell’s time is its longest measurement in the period; repeats are not added up.",
+		"«С момента открытия» — замеры текущей сессии.": "“Since opening” covers the current session.",
+		"В списке могут быть не все ячейки. Время загрузки, расход памяти и время частей формулы недоступны.": "The list may not include every cell. Load time, memory use and time per formula part are not available.",
+		"Замеры до подключения скрипта не сохраняются.": "Nothing is measured before the script starts.",
+		"Скачать результаты": "Download results",
+		"Скачать данные": "Download data",
+		"Выключить замеры в этой таблице": "Turn off measurements here",
+		"Расчёт…": "Calculating…",
+		"Пересчитать": "Recalculate",
+		"Панель Google": "Google panel",
+		"Открыть панель Google": "Open Google’s panel",
+		"Экспериментальные метрики": "Experimental metrics",
+		"Эксперимент": "Experiment",
+		"Для адресных замеров нужен ранний запуск.": "Per-cell timing needs the script to start early.",
+		"Подключить и перезагрузить": "Connect and reload",
+		"Ссылки в формуле": "Formula references",
+		"Диапазоны из нативной модели формулы. Повторы объединены. Это ссылки, а не измерение фактических чтений или времени.": "Ranges from Google’s formula model, duplicates merged. These are references, not measured reads or time.",
+		"Связи расчёта": "Calculation links",
+		"Связи, переданные движком: диапазоны, структура листа, форматирование и проверка данных. Тип связи указан рядом.": "Links reported by the engine: ranges, sheet structure, formatting and data validation. The link type is shown next to each.",
+		"Выход массива": "Array output",
+		"Диапазон, куда выражение массива выводит результат. Это не входные данные формулы.": "Where an array expression writes its result. Not an input of the formula.",
+		"Кто может использовать": "Possibly used by",
+		"Кандидаты из обратного индекса формул загруженного листа. Диапазон может содержать несколько формул; связь каждой клетки отдельно не проверена. Это не полная карта книги.": "Candidates from the reverse formula index of the loaded sheet. A range may hold several formulas and each cell is not checked separately. Not a full map of the spreadsheet.",
+		"Выражение массива": "Array expression",
+		"Структура листа": "Sheet structure",
+		"Форматирование · структура": "Formatting · structure",
+		"Проверка данных · структура": "Data validation · structure",
+		"Диапазон формулы": "Formula range",
+		"Выбранная ячейка": "Selected cell",
+		"Демо": "Demo",
+		"Автообновление": "Live",
+		"Нажмите другую ячейку — связи обновятся здесь. Окно останется открытым.": "Click another cell and its links show up here. The panel stays open.",
+		"Читаем связи…": "Reading links…",
+		"Выберите одну ячейку.": "Select a single cell.",
+		"Google не предоставил данные.": "Google did not provide this data.",
+		"В доступных данных нет записей.": "Nothing here in the available data.",
+		"Показана часть индекса: достигнут лимит чтения или есть неизвестные записи.": "Only part of the index is shown: the read limit was reached or some entries are unknown.",
+		"Часть ссылок недоступна или превышает лимит чтения.": "Some references are unavailable or over the read limit.",
+		"Только загруженные данные. Отсутствие записи не доказывает отсутствие связи.": "Loaded data only. A missing entry does not prove there is no link.",
+		"Открытый диапазон": "Open-ended range",
+		"Все фазы расчёта": "All calculation stages",
+		"Движок Google обновился и ещё не сверён с проверенным. Счётчики показаны по прежней схеме полей: их смысл мог измениться.": "Google updated its engine and this version has not been checked yet. Counters use the previous field layout, so their meaning may have changed.",
+		"Основной": "Main",
+		"Демо-данные": "Sample data",
+		"По выбранной ячейке": "For the selected cell",
+		"Последний снимок": "Latest snapshot",
+		"Экспериментальные функции": "Experimental features",
+		"Счётчики": "Counters",
+		"Функции": "Functions",
+		"Связи": "Links",
+		"Инструменты": "Tools",
+		"Фаза экспериментальных метрик": "Stage for experimental metrics",
+		"Область метрик": "Metric scope",
+		"Агрегаты последнего native-снимка, включая зависимые листы. Не показатели выбранной ячейки. Пакеты могут повторять накопленные числа, поэтому здесь нет суммы за сессию. Неполная сумма помечена звёздочкой.": "Totals from Google’s latest snapshot, dependent sheets included. Not figures for the selected cell. Snapshots can repeat running totals, so there is no session sum. Partial sums are marked with an asterisk.",
+		"Пока нет снимка поддерживаемого движка. Запустите расчёт.": "No snapshot from a supported engine yet. Run a calculation.",
+		"— означает, что Google не передал безопасное числовое значение. * — сумма только фаз, в которых показатель доступен.": "— means Google sent no safe number. * is a sum over only the stages that have this value.",
+		"Данные есть не во всех выбранных фазах": "Not every selected stage has data",
+		"— нет данных · * неполная сумма": "— no data · * partial sum",
+		"Срабатывания функций": "Function hits",
+		"Частоты функций": "Function frequency",
+		"Количество срабатываний в инструментированных путях движка. Есть служебные имена. Это не полный счётчик операций и не время функции; адресной привязки нет. Сбор зависит от отдельной настройки Google, не только от таймеров.": "How often instrumented engine paths ran; some names are internal. Not a full operation count or a function’s time, and not tied to cells. Collection depends on a separate Google setting, not only the timers.",
+		"В снимке нет записей частот.": "The snapshot has no frequency entries.",
+		"Google не передал частоты функций.": "Google sent no function frequencies.",
+		"Настройки движка автоматически не меняются.": "Engine settings are never changed automatically.",
+		"Часть записей имеет неизвестный формат.": "Some entries have an unknown format.",
+		"Этапы и загрузка": "Stages and loading",
+		"Сигнал Worker": "Worker signal",
+		"Прогресс": "Progress",
+		"Последний полученный сигнал расчёта. Процент относится к очереди Google, а не только к выбранному листу. Он не доказывает завершение отрисовки или сохранения.": "The latest calculation signal. The percentage is for Google’s whole queue, not just the selected sheet, and does not mean rendering or saving has finished.",
+		"Оценка объёма": "Work estimate",
+		"numDirtyCellsEstimate из сигнала прогресса. Это оценка предстоящей работы, не точное число операций.": "numDirtyCellsEstimate from the progress signal: an estimate of work ahead, not an exact operation count.",
+		"Получение Wasm": "Wasm download",
+		"Разность нативных отметок начала и завершения получения Wasm. Производная длительность старта, не время формул.": "Time between Google’s own start and end marks for downloading Wasm. Startup time, not formula time.",
+		"Создание Wasm": "Wasm setup",
+		"Нативная длительность instantiateStreaming при запуске движка. Если подключились поздно, данных может не быть.": "Google’s own instantiateStreaming time at engine start. Missing if the script connected late.",
+		"Инициализация": "Initialization",
+		"Нативная длительность начальной инициализации Worker. Не полное время загрузки таблицы.": "Google’s own Worker initialization time. Not the full spreadsheet load time.",
+		"Ошибки создания": "Setup failures",
+		"Число неудачных попыток инстанцирования Wasm при старте. Отсутствие поля не равно нулю.": "Failed Wasm setup attempts at startup. A missing value is not zero.",
+		"Нативное время фазы последнего снимка. Ожидание очереди и применение результатов сюда автоматически не добавляются.": "Google’s own stage time from the latest snapshot. Queue wait and applying results are not included.",
+		"Ожидание и применение результата: отдельные замеры пока недоступны.": "Waiting and applying results: no separate measurements yet.",
+		"Что это": "What this is",
+		"Исходные значения · единицы не установлены": "Raw values · units unknown",
+		"Показаны первые 1000 ключей журнала.": "Showing the first 1000 log keys.",
+		"Журнал недоступен": "Log unavailable",
+		"Из кэша панели Google · время получения неизвестно": "From Google’s panel cache · time received unknown",
+		"Показать существующие скрытые кнопки. Это меняет только видимость; команды могут быть не подключены.": "Show existing hidden buttons. This changes visibility only; the commands may not be wired up.",
+		"Доступно в Google Таблицах после обновления скрипта.": "Available in Google Sheets after updating the script.",
+		"Найти ещё": "Find more",
+		"Показать скрытые кнопки": "Show hidden buttons",
+		"Вернуть исходный вид": "Restore original view",
+		"показано": "shown",
+		"скрыто родительским элементом": "hidden by a parent element",
+		"Существующих скрытых отладочных кнопок не найдено.": "No hidden debug buttons found.",
+		"единицы неизвестны": "units unknown",
+		"Поле {n}": "Field {n}",
+		"Пустой список": "Empty list",
+		"Google не передал CacheSizes.": "Google sent no CacheSizes.",
+		"{bytes} Б": "{bytes} B",
+		"Найдено {count}": "Found {count}",
+		"Объём расчёта": "Calculation volume",
+		"Чтение и изменения": "Reads and changes",
+		"Кэш частей формул": "Formula part cache",
+		"Массивы и источники": "Arrays and sources",
+		"Исходная область": "Initial scope",
+		"Число объектов, помеченных для пересчёта в начале фазы. Это не число операций внутри формулы.": "Objects marked for recalculation when the stage starts. Not the number of operations inside a formula.",
+		"К пересчёту": "To recalculate",
+		"Объём работы, отмеченной движком в этой фазе. Не обязательно уникальные ячейки.": "Work the engine marked in this stage. Not necessarily unique cells.",
+		"Вычислено": "Evaluated",
+		"Число вычислений объектов фазы, включая возможные повторы. Не инструкции CPU.": "Evaluations in this stage, repeats included. Not CPU instructions.",
+		"Прямые зависимости": "Direct dependents",
+		"Число напрямую зависимых объектов, затронутых пересчётом. Не список связей между адресами.": "Directly dependent objects touched by the recalculation. Not a list of links between cells.",
+		"Косвенные зависимости": "Indirect dependents",
+		"Число косвенно зависимых объектов, затронутых пересчётом.": "Indirectly dependent objects touched by the recalculation.",
+		"Проходы": "Rounds",
+		"Количество раундов расчёта, зарегистрированных движком.": "Calculation rounds recorded by the engine.",
+		"Итеративные проходы": "Iterative rounds",
+		"Количество раундов итеративного расчёта. Отсутствие поля не означает ноль.": "Iterative calculation rounds. A missing value does not mean zero.",
+		"Чтения ячеек": "Cell reads",
+		"Количество обращений к ячейкам. Повторные чтения учитываются; это не число уникальных адресов.": "Cell accesses, repeats included. Not the number of unique cells.",
+		"Чтения из модели": "Model reads",
+		"Обращения к модели данных, отдельно учтённые движком. Не число сетевых запросов.": "Data model accesses counted separately by the engine. Not network requests.",
+		"Чтения диапазонов": "Range reads",
+		"Количество обращений к диапазонам. Не количество ячеек внутри них.": "Range accesses. Not the number of cells inside them.",
+		"Попытки обновления": "Update attempts",
+		"Попытки записать вычисленное значение до проверки, изменилось ли оно.": "Attempts to write a computed value before checking whether it changed.",
+		"Изменения значений": "Value changes",
+		"Обновления, которые прошли проверку изменения значения в движке.": "Updates that passed the engine’s changed-value check.",
+		"Обновления ячеек": "Cell updates",
+		"Отдельный счётчик обновлений ячеек. Его нельзя складывать с попытками и изменениями значений.": "A separate cell update counter. Do not add it to attempts or value changes.",
+		"Обнаружено": "Detected",
+		"Случаи обнаружения кэширования подвыражений. Не количество попаданий в кэш.": "Times subexpression caching was detected. Not cache hits.",
+		"Применено к ячейкам": "Applied to cells",
+		"Случаи применения механизма кэширования частей формулы. Эти два числа не образуют hit rate.": "Times formula part caching was applied. These two numbers are not a hit rate.",
+		"Массивные формулы": "Array formulas",
+		"Количество вычисленных массивных формул.": "Array formulas evaluated.",
+		"Ячейки результатов": "Result cells",
+		"Количество ячеек результатов массивных формул. Это размер результатов, не время каждого элемента.": "Cells filled by array formula results. Result size, not per-item time.",
+		"Сводные таблицы": "Pivot tables",
+		"Количество вычислений сводных таблиц, отмеченных движком.": "Pivot table evaluations recorded by the engine.",
+		"Строки сводных": "Pivot rows",
+		"Суммарный показатель строк сводных таблиц в статистике фазы.": "Total pivot table rows in the stage statistics.",
+		"Столбцы сводных": "Pivot columns",
+		"Суммарный показатель столбцов сводных таблиц в статистике фазы.": "Total pivot table columns in the stage statistics.",
+		"Источники данных": "Data sources",
+		"Количество вычислений источников данных. Не длительность серверных запросов.": "Data source evaluations. Not server request time.",
+		"Ссылки на таблицы": "Table references",
+		"Обращения к ссылкам на таблицы, учтённые движком.": "Table reference accesses counted by the engine.",
+		"Логические правила": "Boolean rules",
+		"Количество вычислений логических правил условного форматирования.": "Boolean conditional formatting rule evaluations.",
+		"Цветовые шкалы": "Color scales",
+		"Количество вычислений градиентных правил условного форматирования.": "Color scale conditional formatting rule evaluations.",
+		"Простые логические": "Simple boolean",
+		"Отдельная категория simple boolean движка. Не прибавляем к общему числу правил без доказанной непересекаемости.": "The engine’s separate “simple boolean” category. Not added to the rule total, since overlap is not ruled out.",
+		"Простые шкалы": "Simple scales",
+		"Отдельная категория simple gradient движка. Не самостоятельный замер времени правила.": "The engine’s separate “simple gradient” category. Not a timing of the rule.",
+		"Журнал задержек": "Latency log",
+		"docs_latencyStats хранит последние три записи на ключ, если Google включил этот журнал. Читаем существующие записи без переключения флагов.": "docs_latencyStats keeps the last three entries per key when Google has this log on. Existing entries are read; no flags are switched.",
+		"Размер модели": "Model size",
+		"Показатель штатной панели, полученный с сервера. Это размер модели документа, а не оперативная память или память формулы.": "The figure from Google’s own panel, sent by the server. Document model size, not RAM or formula memory.",
+		"Структура кэшей": "Cache layout",
+		"CacheSizes содержит 14 внутренних полей. Их смысл пока не восстановлен: показываем номера и исходные числа, не называя их байтами или попаданиями в кэш.": "CacheSizes has 14 internal fields whose meaning is not known yet. Shown as field numbers and raw values, not as bytes or cache hits.",
+		"Ручной расчёт": "Manual calculation",
+		"Восстановлена команда включения и ветка Worker MANUAL_CALC. Доступ зависит от femc. Переключение в живой таблице ещё не проверено; экспериментальный раздел этот режим не включает.": "The switch command and the Worker MANUAL_CALC path were traced. Access depends on femc. Not tried in a live spreadsheet yet; this section never turns the mode on.",
+		"Код подтверждён · запуск не проверен": "Code confirmed · not run",
+		"Скрытое меню «Отладка» найдено в живой странице. Рабочие команды Sheets и способ их включения не подтверждены. Простое снятие скрытия этого не доказывает.": "A hidden “Debug” menu exists on the live page. Its working commands and how to enable them are not confirmed; unhiding it proves nothing.",
+		"Меню скрыто · команды не проверены": "Menu hidden · commands unverified",
+		"Отладка календарного Timeline": "Calendar Timeline debug",
+		"Это календарная шкала карточек, не профайлер формул. В проверенной сборке Google явно отключил debug-кнопку в шаблоне; обработчик её команды не найден.": "This is the calendar card timeline, not a formula profiler. Google disabled its debug button in the checked build and no handler was found.",
+		"Отключено в коде Google": "Disabled in Google’s code",
+		"Служебные формулы": "Internal formulas",
+		"Имена DEBUG_SLEEP и других функций встречаются в реестре. Возможность использовать их в обычной таблице не доказана.": "DEBUG_SLEEP and other names appear in the function registry. Using them in a normal spreadsheet is not proven.",
+		"Доступ не подтверждён": "Access unconfirmed",
+		"Операции и память ячейки": "Cell operations and memory",
+		"Готовые счётчики всех операций, памяти и времени подвыражений для отдельного адреса не найдены. Агрегаты нельзя приписать карточке формулы.": "No per-cell counters for operations, memory or subexpression time were found. Totals cannot be attributed to a single formula card.",
+		"Метрика не найдена": "Metric not found",
+		"Google не предоставил журнал": "Google provides no log here",
+		"Недоступно": "Unavailable",
+		"Неподдерживаемый тип": "Unsupported type",
+		"В журнале пока нет записей": "The log is empty so far",
+		"Источник журнала не прошёл проверку совместимости": "The log source failed the compatibility check",
+		"Нет данных штатной панели": "No data from Google’s panel",
+		"Источник размера не прошёл проверку совместимости": "The size source failed the compatibility check",
+		"Google ещё не предоставил размер": "Google has not reported the size yet",
+		"применяет LAMBDA к элементам диапазонов": "applies a LAMBDA to range items",
+		"задаёт обработку элемента": "defines how an item is processed",
+		"вычисляет массив значений": "evaluates an array of values",
+		"суммирует строки по нескольким условиям": "sums rows matching several conditions",
+		"считает строки по нескольким условиям": "counts rows matching several conditions",
+		"считает совпадения по условию": "counts matches for a condition",
+		"суммирует значения по условию": "sums values matching a condition",
+		"ищет совпадение и возвращает соответствующее значение": "finds a match and returns the matching value",
+		"ищет в первом столбце диапазона": "looks up in the first column of a range",
+		"берёт значение по позиции": "takes the value at a position",
+		"находит позицию совпадения": "finds the position of a match",
+		"выбирает результат по условию": "picks a result by condition",
+		"заменяет ошибку другим результатом": "replaces an error with another result",
+		"заменяет ошибку отсутствующего совпадения": "replaces a not-found error",
+		"выбирает результат по первому выполненному условию": "picks the result of the first true condition",
+		"соединяет массивы по вертикали": "stacks arrays vertically",
+		"соединяет массивы по горизонтали": "stacks arrays horizontally",
+		"выбирает наибольшее значение": "picks the largest value",
+		"задаёт имена промежуточным значениям": "names intermediate values",
+		"отбирает строки по условиям": "filters rows by conditions",
+		"обрабатывает диапазон по тексту запроса": "runs a query over a range",
+		"складывает значения": "adds values",
+		"сортирует диапазон": "sorts a range",
+		"оставляет уникальные значения": "keeps unique values",
+		"читает диапазон другой книги": "reads a range from another spreadsheet",
+		"получает ссылку из текста": "builds a reference from text",
+		"строит ссылку со смещением": "builds an offset reference",
+		"выбирает строки массива": "picks rows of an array",
+		"соединяет текстовые значения": "joins text values",
+		"функция в формуле; смысл определяется её аргументами": "a function in the formula; its meaning depends on its arguments",
+		"Замеры в этой таблице выключены. Нажмите «Подключить и перезагрузить».": "Measurements are off for this spreadsheet. Click “Connect and reload”.",
+		"Вычисления Google ещё не подключены. Дождитесь загрузки таблицы и повторите.": "Google’s calculation engine is not connected yet. Wait for the spreadsheet to load and try again.",
+		"Замеры остановлены. Перезагрузите таблицу.": "Measurements stopped. Reload the spreadsheet.",
+		"Нет подключения к вычислениям Google. Перезагрузите таблицу.": "Not connected to Google’s calculation engine. Reload the spreadsheet.",
+		"Пересчёт запущен. Замеры пока недоступны: {reason}": "Recalculation started. No measurements yet: {reason}",
+		"Нет нового результата за 120 с. Автоматического повтора нет.": "No new result within 120 s. It will not retry on its own.",
+		"Расчёт не запущен.": "The calculation did not start.",
+		"Ожидаем раннего подключения к вычислениям…": "Waiting to connect to the calculation engine…",
+		"Результаты ещё не получены.": "No results yet.",
+		"Раннее подключение пропущено. Перезагрузите таблицу после обновления скрипта.": "The script started too late. Reload the spreadsheet after updating the script.",
+		"Worker недоступен в контексте страницы.": "Worker is not available on this page.",
+		"Google изменил Worker. Нужна новая проверка совместимости.": "Google changed its Worker. A new compatibility check is needed.",
+		"Google изменил Worker: код обвязки отличается от проверенного. Нужна новая проверка совместимости.": "Google changed its Worker: the wrapper code differs from the checked one. A new compatibility check is needed.",
+		"Не удалось проверить новый Worker Google ({reason}). Замеры не включены.": "Could not check Google’s new Worker ({reason}). Measurements stay off.",
+		"fetch недоступен": "fetch is unavailable",
+		"истекло время ожидания": "timed out",
+		"Изменилась схема bootstrap Worker.": "The Worker startup format changed.",
+		"Настройка замеров недоступна: браузер запретил localStorage.": "Measurement settings are unavailable: the browser blocked localStorage.",
+		"Откройте Google-таблицу.": "Open a Google spreadsheet.",
+		"Откройте Google Таблицу.": "Open a Google spreadsheet.",
+		"Дождитесь загрузки таблицы.": "Wait for the spreadsheet to load.",
+		"Панель ещё загружается. Повторите открытие через несколько секунд.": "The panel is still loading. Try again in a few seconds.",
+		"Список листов недоступен.": "The sheet list is unavailable.",
+		"Список листов этой сборки недоступен.": "The sheet list is unavailable in this Google build.",
+		"Размеры листов изменились или недоступны.": "Sheet sizes changed or are unavailable.",
+		"Размер книги превышает известный лимит; счётчик требует проверки.": "The spreadsheet exceeds the known limit; the counter needs checking.",
+		"Счётчик ячеек недоступен.": "The cell counter is unavailable.",
+		"Версии страницы и Worker различаются. Нужна проверка совместимости.": "The page and Worker versions differ. A compatibility check is needed.",
+		"Сумма фаз и максимумы ячеек с раннего подключения к Worker. Пропущенные результаты не восстанавливаются.": "Stage totals and cell maximums since the script connected to the Worker. Missed results are not recovered.",
+		"Дождитесь текущего расчёта Sheets.": "Wait for the current Sheets calculation to finish.",
+		"Выберите существующий лист.": "Pick an existing sheet.",
+		"Очередь расчёта этой версии недоступна.": "The calculation queue is unavailable in this version.",
+		"Лист этого типа не поддерживается.": "This kind of sheet is not supported.",
+		"Запуск расчёта уже выполняется.": "A calculation is already starting.",
+		"Адрес ячейки недоступен.": "Cell address unavailable.",
+		"Изменилась схема результатов Sheets.": "The Sheets result format changed.",
+		"Неизвестная схема фазы расчёта.": "Unknown calculation stage format.",
+		"Неожиданный размер списка ячеек.": "Unexpected cell list size.",
+		"Неизвестная схема времени ячейки.": "Unknown cell timing format.",
+		"Изменилась схема статистики Worker Google.": "Google’s Worker statistics format changed.",
+		"Изменилась схема фаз Worker Google.": "Google’s Worker stage format changed.",
+		"Изменилась схема адресных замеров Worker Google.": "Google’s Worker per-cell format changed.",
+		"Неизвестная схема экспериментальных метрик.": "Unknown experimental metrics format.",
+		"Неизвестная схема экспериментальной фазы.": "Unknown experimental stage format.",
+		"Неизвестный или повторный тип экспериментальной фазы.": "Unknown or repeated experimental stage type.",
+		"Структура расчёта Google изменилась. Автопоиск не нашёл подтверждённую цепочку. Нужна проверка адаптера.": "Google changed how calculation works. Auto-discovery found no confirmed path. The adapter needs a check.",
+		"Функция Sheets недоступна ({role}, {build}).": "Sheets function unavailable ({role}, {build}).",
+		"Google изменил функцию ({role}, {build}). Нужна проверка адаптера.": "Google changed a function ({role}, {build}). The adapter needs a check.",
+		"Изменилась регистрация панели Google.": "Google changed how its panel is registered.",
+		"Google изменил источник связей ({role}). Нужна проверка совместимости.": "Google changed the link source ({role}). A compatibility check is needed.",
+		"{label} не найден однозначно.": "{label} was not found unambiguously.",
+		"Функция связей ({role})": "Link function ({role})",
+		"Объект связей недоступен ({key}).": "Link object unavailable ({key}).",
+		"Метод связей ({role})": "Link method ({role})",
+		"Поле связей ({role}) не найдено однозначно.": "Link field ({role}) was not found unambiguously.",
+		"Фрагмент без @: {snippet}": "Snippet without @: {snippet}",
+		"Фрагмент не найден в эталоне: {snippet}": "Snippet not found in the reference: {snippet}",
+		"Вкладка браузера скрыта.": "The browser tab is hidden.",
+		"Связи в режиме фильтра пока недоступны.": "Links are not available in filter view yet.",
+		"Выберите одну ячейку в таблице.": "Select a single cell in the spreadsheet.",
+		"Не удалось определить выбранный лист.": "Could not tell which sheet is selected.",
+		"Данные листа ещё не загружены.": "The sheet data is not loaded yet.",
+		"Ячейка вне загруженного листа.": "The cell is outside the loaded sheet.",
+		"Нет обратного индекса этого листа.": "This sheet has no reverse index.",
+		"Обратный индекс недоступен.": "The reverse index is unavailable.",
+		"Направление обратного индекса не подтверждено.": "The reverse index direction is not confirmed.",
+		"Дерево обратных связей недоступно.": "The reverse link tree is unavailable."
+	} };
+	var current = "ru";
+	function detectLocale(doc = globalThis.document) {
+		return /^ru\b/i.test(doc?.documentElement?.lang ?? "") ? "ru" : "en";
+	}
+	function setLocale(locale) {
+		current = locale === "ru" ? "ru" : "en";
+	}
+	var numberLocale = () => current === "ru" ? "ru-RU" : "en-US";
+	function t(text, params) {
+		const template = dictionaries[current]?.[text] ?? text;
+		return params ? template.replace(/\{(\w+)\}/g, (match, name) => name in params ? String(params[name]) : match) : template;
+	}
+	//#endregion
 	//#region userscript/src/native-data.js
 	var number = (value) => typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null;
 	var phaseName = (type) => ({
-		1: "Формулы",
-		2: "Условное форматирование",
-		3: "Проверка данных",
-		4: "Таблицы"
-	})[type] ?? `Тип ${type ?? "неизвестен"}`;
+		1: t("Формулы"),
+		2: t("Условное форматирование"),
+		3: t("Проверка данных"),
+		4: t("Таблицы")
+	})[type] ?? t("Тип {type}", { type: type ?? t("неизвестен") });
 	function decodeNativeStats(stats) {
 		if (stats == null) return {
 			available: false,
 			phases: [],
 			observations: []
 		};
-		if (!Array.isArray(stats) || stats[9] != null && !Array.isArray(stats[9])) throw Error("Изменилась схема результатов Sheets.");
+		if (!Array.isArray(stats) || stats[9] != null && !Array.isArray(stats[9])) throw Error(t("Изменилась схема результатов Sheets."));
 		const phases = [], observations = [];
 		for (const [phaseIndex, phase] of (stats[9] ?? []).entries()) {
-			if (!Array.isArray(phase) || phase[10] != null && !Array.isArray(phase[10])) throw Error("Неизвестная схема фазы расчёта.");
+			if (!Array.isArray(phase) || phase[10] != null && !Array.isArray(phase[10])) throw Error(t("Неизвестная схема фазы расчёта."));
 			const type = number(phase[0]);
 			phases.push({
 				phaseIndex,
@@ -38,9 +397,9 @@
 				dirtyCount: number(phase[3]),
 				evaluatedCount: number(phase[4])
 			});
-			if ((phase[10]?.length ?? 0) > 100) throw Error("Неожиданный размер списка ячеек.");
+			if ((phase[10]?.length ?? 0) > 100) throw Error(t("Неожиданный размер списка ячеек."));
 			for (const [index, item] of (phase[10] ?? []).entries()) {
-				if (!Array.isArray(item)) throw Error("Неизвестная схема времени ячейки.");
+				if (!Array.isArray(item)) throw Error(t("Неизвестная схема времени ячейки."));
 				const coord = item[1];
 				const row = number(coord?.[1]), col = number(coord?.[2]);
 				observations.push({
@@ -124,37 +483,32 @@
 		const unquoted = formula.replace(/"(?:[^"]|"")*"|'(?:[^']|'')*'/g, " ");
 		return [...new Set([...unquoted.matchAll(/([\p{L}_][\p{L}\p{N}_.]*)\s*\(/gu)].map((m) => m[1].toUpperCase()))].map((name) => ({
 			name,
-			description: meanings[name] ?? "функция в формуле; смысл определяется её аргументами"
+			description: meanings[name] ? t(meanings[name]) : t("функция в формуле; смысл определяется её аргументами")
 		}));
 	}
 	//#endregion
 	//#region userscript/src/ui/presentation.js
-	var calculationTypes = [
-		{
-			id: "formula",
-			label: "Формулы",
-			shortLabel: "Формулы",
-			color: "#5086ec"
-		},
-		{
-			id: "format",
-			label: "Условное форматирование",
-			shortLabel: "Формат",
-			color: "#d95040"
-		},
-		{
-			id: "validation",
-			label: "Проверка данных",
-			shortLabel: "Проверка",
-			color: "#f2bd42"
-		}
-	];
-	var calculationType = (id) => calculationTypes.find((type) => type.id === id) ?? {
+	var type = (id, label, shortLabel, color) => ({
 		id,
-		label: id === "native-4" ? "Таблицы" : "Неизвестный тип",
+		color,
+		get label() {
+			return t(label);
+		},
+		get shortLabel() {
+			return t(shortLabel);
+		}
+	});
+	var calculationTypes = [
+		type("formula", "Формулы", "Формулы", "#5086ec"),
+		type("format", "Условное форматирование", "Формат", "#d95040"),
+		type("validation", "Проверка данных", "Проверка", "#f2bd42")
+	];
+	var calculationType = (id) => calculationTypes.find((item) => item.id === id) ?? {
+		id,
+		label: id === "native-4" ? t("Таблицы") : t("Неизвестный тип"),
 		color: "#7b8089"
 	};
-	var formatTime = (ms) => ms == null ? "—" : ms >= 1e3 ? `${(ms / 1e3).toLocaleString("ru-RU", { maximumFractionDigits: 2 })} с` : `${Math.round(ms)} мс`;
+	var formatTime = (ms) => ms == null ? "—" : ms >= 1e3 ? t("{value} с", { value: (ms / 1e3).toLocaleString(numberLocale(), { maximumFractionDigits: 2 }) }) : t("{value} мс", { value: Math.round(ms) });
 	function rankCells(cells, { sheet, includeRelated = false, type = "all" }) {
 		return cells.filter((cell) => (includeRelated || sheet === "all" || cell.sheet === sheet) && (type === "all" || cell.type === type)).sort((a, b) => (b.ms ?? -1) - (a.ms ?? -1));
 	}
@@ -171,7 +525,7 @@
 			][index]
 		})), {
 			id: "load",
-			label: "Загрузка",
+			label: t("Загрузка"),
 			color: "#58a55c",
 			field: "va"
 		}].map(({ field, ...phase }) => {
@@ -221,12 +575,12 @@
 		};
 	}
 	function cellHash(cell) {
-		if (!/^-?\d+$/.test(String(cell.sheet ?? "")) || !/^[A-Z]+[1-9]\d*$/.test(cell.address ?? "")) throw Error("Адрес ячейки недоступен.");
+		if (!/^-?\d+$/.test(String(cell.sheet ?? "")) || !/^[A-Z]+[1-9]\d*$/.test(cell.address ?? "")) throw Error(t("Адрес ячейки недоступен."));
 		return `#gid=${encodeURIComponent(cell.sheet)}&range=${encodeURIComponent(cell.address)}`;
 	}
 	function cellURL(cell, currentURL) {
 		const hash = cellHash(cell), url = new URL(currentURL);
-		if (url.origin !== "https://docs.google.com" || !/^\/spreadsheets\/(?:u\/\d+\/)?d\/[\w-]+\/edit\/?$/.test(url.pathname)) throw Error("Откройте Google-таблицу.");
+		if (url.origin !== "https://docs.google.com" || !/^\/spreadsheets\/(?:u\/\d+\/)?d\/[\w-]+\/edit\/?$/.test(url.pathname)) throw Error(t("Откройте Google-таблицу."));
 		for (const key of [
 			"gid",
 			"range",
@@ -253,35 +607,45 @@
 	//#endregion
 	//#region userscript/src/experimental.js
 	var experimentalPhaseName = (type) => ({
-		1: "Формулы",
-		2: "Условное форматирование",
-		3: "Проверка данных",
-		4: "Таблицы",
-		5: "Объекты",
-		6: "Служебные ячейки"
-	})[type] ?? `Тип ${type ?? "неизвестен"}`;
+		1: t("Формулы"),
+		2: t("Условное форматирование"),
+		3: t("Проверка данных"),
+		4: t("Таблицы"),
+		5: t("Объекты"),
+		6: t("Служебные ячейки")
+	})[type] ?? t("Тип {type}", { type: type ?? t("неизвестен") });
 	var count = (value) => Number.isSafeInteger(value) && value >= 0 ? value : null;
 	var finite = (value) => typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null;
 	var metricGroups = [
 		{
 			id: "work",
-			label: "Объём расчёта"
+			get label() {
+				return t("Объём расчёта");
+			}
 		},
 		{
 			id: "reads",
-			label: "Чтение и изменения"
+			get label() {
+				return t("Чтение и изменения");
+			}
 		},
 		{
 			id: "cache",
-			label: "Кэш частей формул"
+			get label() {
+				return t("Кэш частей формул");
+			}
 		},
 		{
 			id: "arrays",
-			label: "Массивы и источники"
+			get label() {
+				return t("Массивы и источники");
+			}
 		},
 		{
 			id: "rules",
-			label: "Условное форматирование"
+			get label() {
+				return t("Условное форматирование");
+			}
 		}
 	];
 	var metrics = [
@@ -485,17 +849,21 @@
 		]
 	].map(([id, label, group, path, help]) => ({
 		id,
-		label,
 		group,
 		path,
-		help
+		get label() {
+			return t(label);
+		},
+		get help() {
+			return t(help);
+		}
 	}));
 	function decodeExperimentalStats(wire) {
-		if (!Array.isArray(wire) || wire[10] != null && !Array.isArray(wire[10])) throw Error("Неизвестная схема экспериментальных метрик.");
+		if (!Array.isArray(wire) || wire[10] != null && !Array.isArray(wire[10])) throw Error(t("Неизвестная схема экспериментальных метрик."));
 		const seen = /* @__PURE__ */ new Set();
 		const phases = (wire[10] ?? []).map((phase, index) => {
-			if (!Array.isArray(phase)) throw Error("Неизвестная схема экспериментальной фазы.");
-			if (count(phase[1]) === null || seen.has(phase[1])) throw Error("Неизвестный или повторный тип экспериментальной фазы.");
+			if (!Array.isArray(phase)) throw Error(t("Неизвестная схема экспериментальной фазы."));
+			if (count(phase[1]) === null || seen.has(phase[1])) throw Error(t("Неизвестный или повторный тип экспериментальной фазы."));
 			seen.add(phase[1]);
 			return {
 				index,
@@ -547,7 +915,7 @@
 		const descriptor = Object.getOwnPropertyDescriptor(g, "docs_latencyStats");
 		if (!descriptor || !("value" in descriptor) || !descriptor.value || typeof descriptor.value !== "object") return {
 			entries: [],
-			reason: "Google не предоставил журнал"
+			reason: t("Google не предоставил журнал")
 		};
 		const fields = Object.getOwnPropertyDescriptors(descriptor.value), keys = Object.keys(fields);
 		const entries = keys.slice(0, 1e3).map((key) => {
@@ -556,16 +924,16 @@
 				name: key.slice(0, 250),
 				values: Array.isArray(list) ? Array.from({ length: Math.min(list.length, 3) }, (_, i) => {
 					const value = Object.getOwnPropertyDescriptor(list, String(Math.max(0, list.length - 3) + i))?.value;
-					if (typeof value === "number") return Number.isFinite(value) ? value : "Недоступно";
+					if (typeof value === "number") return Number.isFinite(value) ? value : t("Недоступно");
 					if (typeof value === "string") return value.length > 500 ? value.slice(0, 500) + "…" : value;
-					return value === null || typeof value === "boolean" ? value : "Неподдерживаемый тип";
-				}) : ["Неподдерживаемый тип"]
+					return value === null || typeof value === "boolean" ? value : t("Неподдерживаемый тип");
+				}) : [t("Неподдерживаемый тип")]
 			};
 		});
 		return {
 			entries,
 			truncated: keys.length > 1e3,
-			reason: entries.length ? null : "В журнале пока нет записей"
+			reason: entries.length ? null : t("В журнале пока нет записей")
 		};
 	}
 	function decodeExperimentalSignal(message) {
@@ -599,64 +967,106 @@
 	var experimentalTools = [
 		{
 			id: "latency",
-			label: "Журнал задержек",
-			help: "docs_latencyStats хранит последние три записи на ключ, если Google включил этот журнал. Читаем существующие записи без переключения флагов."
+			get label() {
+				return t("Журнал задержек");
+			},
+			get help() {
+				return t("docs_latencyStats хранит последние три записи на ключ, если Google включил этот журнал. Читаем существующие записи без переключения флагов.");
+			}
 		},
 		{
 			id: "modelSize",
-			label: "Размер модели",
-			help: "Показатель штатной панели, полученный с сервера. Это размер модели документа, а не оперативная память или память формулы."
+			get label() {
+				return t("Размер модели");
+			},
+			get help() {
+				return t("Показатель штатной панели, полученный с сервера. Это размер модели документа, а не оперативная память или память формулы.");
+			}
 		},
 		{
 			id: "cache",
-			label: "Структура кэшей",
-			help: "CacheSizes содержит 14 внутренних полей. Их смысл пока не восстановлен: показываем номера и исходные числа, не называя их байтами или попаданиями в кэш."
+			get label() {
+				return t("Структура кэшей");
+			},
+			get help() {
+				return t("CacheSizes содержит 14 внутренних полей. Их смысл пока не восстановлен: показываем номера и исходные числа, не называя их байтами или попаданиями в кэш.");
+			}
 		},
 		{
 			id: "manual",
-			label: "Ручной расчёт",
-			help: "Восстановлена команда включения и ветка Worker MANUAL_CALC. Доступ зависит от femc. Переключение в живой таблице ещё не проверено; экспериментальный раздел этот режим не включает.",
-			reason: "Код подтверждён · запуск не проверен"
+			get label() {
+				return t("Ручной расчёт");
+			},
+			get help() {
+				return t("Восстановлена команда включения и ветка Worker MANUAL_CALC. Доступ зависит от femc. Переключение в живой таблице ещё не проверено; экспериментальный раздел этот режим не включает.");
+			},
+			get reason() {
+				return t("Код подтверждён · запуск не проверен");
+			}
 		},
 		{
 			id: "debug",
-			label: "Debug menu",
-			help: "Скрытое меню «Отладка» найдено в живой странице. Рабочие команды Sheets и способ их включения не подтверждены. Простое снятие скрытия этого не доказывает.",
-			reason: "Меню скрыто · команды не проверены"
+			get label() {
+				return t("Debug menu");
+			},
+			get help() {
+				return t("Скрытое меню «Отладка» найдено в живой странице. Рабочие команды Sheets и способ их включения не подтверждены. Простое снятие скрытия этого не доказывает.");
+			},
+			get reason() {
+				return t("Меню скрыто · команды не проверены");
+			}
 		},
 		{
 			id: "timeline",
-			label: "Отладка календарного Timeline",
-			help: "Это календарная шкала карточек, не профайлер формул. В проверенной сборке Google явно отключил debug-кнопку в шаблоне; обработчик её команды не найден.",
-			reason: "Отключено в коде Google"
+			get label() {
+				return t("Отладка календарного Timeline");
+			},
+			get help() {
+				return t("Это календарная шкала карточек, не профайлер формул. В проверенной сборке Google явно отключил debug-кнопку в шаблоне; обработчик её команды не найден.");
+			},
+			get reason() {
+				return t("Отключено в коде Google");
+			}
 		},
 		{
 			id: "debugFormulas",
-			label: "Служебные формулы",
-			help: "Имена DEBUG_SLEEP и других функций встречаются в реестре. Возможность использовать их в обычной таблице не доказана.",
-			reason: "Доступ не подтверждён"
+			get label() {
+				return t("Служебные формулы");
+			},
+			get help() {
+				return t("Имена DEBUG_SLEEP и других функций встречаются в реестре. Возможность использовать их в обычной таблице не доказана.");
+			},
+			get reason() {
+				return t("Доступ не подтверждён");
+			}
 		},
 		{
 			id: "cellOperations",
-			label: "Операции и память ячейки",
-			help: "Готовые счётчики всех операций, памяти и времени подвыражений для отдельного адреса не найдены. Агрегаты нельзя приписать карточке формулы.",
-			reason: "Метрика не найдена"
+			get label() {
+				return t("Операции и память ячейки");
+			},
+			get help() {
+				return t("Готовые счётчики всех операций, памяти и времени подвыражений для отдельного адреса не найдены. Агрегаты нельзя приписать карточке формулы.");
+			},
+			get reason() {
+				return t("Метрика не найдена");
+			}
 		}
 	];
 	//#endregion
 	//#region userscript/src/worker-results.js
 	function decodeWorkerStats(wire) {
-		if (!Array.isArray(wire) || wire[10] != null && !Array.isArray(wire[10]) || (wire[10]?.length ?? 0) > 64) throw Error("Изменилась схема статистики Worker Google.");
+		if (!Array.isArray(wire) || wire[10] != null && !Array.isArray(wire[10]) || (wire[10]?.length ?? 0) > 64) throw Error(t("Изменилась схема статистики Worker Google."));
 		const stats = [];
 		stats[9] = (wire[10] ?? []).map((phase) => {
-			if (!Array.isArray(phase) || phase[11] != null && !Array.isArray(phase[11]) || (phase[11]?.length ?? 0) > 100) throw Error("Изменилась схема фаз Worker Google.");
+			if (!Array.isArray(phase) || phase[11] != null && !Array.isArray(phase[11]) || (phase[11]?.length ?? 0) > 100) throw Error(t("Изменилась схема фаз Worker Google."));
 			const result = [];
 			result[0] = phase[1];
 			result[1] = phase[2];
 			result[3] = phase[4];
 			result[4] = phase[5];
 			result[10] = (phase[11] ?? []).map((item) => {
-				if (!Array.isArray(item) || item[2] != null && !Array.isArray(item[2])) throw Error("Изменилась схема адресных замеров Worker Google.");
+				if (!Array.isArray(item) || item[2] != null && !Array.isArray(item[2])) throw Error(t("Изменилась схема адресных замеров Worker Google."));
 				return [item[1], item[2] == null ? null : [
 					item[2][1],
 					item[2][2],
@@ -676,7 +1086,7 @@
 			};
 		}), {
 			id: "load",
-			label: "Загрузка",
+			label: t("Загрузка"),
 			color: "#58a55c",
 			ms: null
 		}];
@@ -791,10 +1201,10 @@
 		}
 		return { at(snippet) {
 			const parts = tokenize(snippet), target = parts.indexOf("@");
-			if (target < 0) throw Error(`Фрагмент без @: ${snippet}`);
+			if (target < 0) throw Error(t("Фрагмент без @: {snippet}", { snippet }));
 			parts.splice(target, 1);
 			for (let i = 0; i + parts.length <= a.length; i++) if (parts.every((part, j) => a[i + j] === part)) return b[i + target];
-			throw Error(`Фрагмент не найден в эталоне: ${snippet}`);
+			throw Error(t("Фрагмент не найден в эталоне: {snippet}", { snippet }));
 		} };
 	}
 	//#endregion
@@ -890,11 +1300,11 @@
 		};
 	}
 	function timingReason(setup) {
-		if (setup.status === "disabled") return "Замеры в этой таблице выключены. Нажмите «Подключить и перезагрузить».";
-		if (setup.status === "waiting") return "Вычисления Google ещё не подключены. Дождитесь загрузки таблицы и повторите.";
-		if (setup.status === "stopped") return "Замеры остановлены. Перезагрузите таблицу.";
+		if (setup.status === "disabled") return t("Замеры в этой таблице выключены. Нажмите «Подключить и перезагрузить».");
+		if (setup.status === "waiting") return t("Вычисления Google ещё не подключены. Дождитесь загрузки таблицы и повторите.");
+		if (setup.status === "stopped") return t("Замеры остановлены. Перезагрузите таблицу.");
 		if (setup.error) return setup.error;
-		return "Нет подключения к вычислениям Google. Перезагрузите таблицу.";
+		return t("Нет подключения к вычислениям Google. Перезагрузите таблицу.");
 	}
 	function installTiming(win, enabled) {
 		const nativeWorker = win.Worker, restores = /* @__PURE__ */ new Set(), listeners = /* @__PURE__ */ new Set();
@@ -909,7 +1319,7 @@
 		async function verifyHost(href, host) {
 			let timer;
 			try {
-				if (typeof nativeFetch !== "function") throw Error("fetch недоступен");
+				if (typeof nativeFetch !== "function") throw Error(t("fetch недоступен"));
 				const check = (async () => {
 					const response = await Reflect.apply(nativeFetch, win, [href, {
 						credentials: "same-origin",
@@ -919,12 +1329,12 @@
 					return verifyWorkerGlue(await response.text(), host);
 				})();
 				const timeout = new Promise((_, reject) => {
-					timer = win.setTimeout(() => reject(Error("истекло время ожидания")), 1e4);
+					timer = win.setTimeout(() => reject(Error(t("истекло время ожидания"))), 1e4);
 				});
 				return await Promise.race([check, timeout]);
 			} catch (error) {
 				initial.status = "unsupported";
-				initial.error = `Не удалось проверить новый Worker Google (${error.message}). Замеры не включены.`;
+				initial.error = t("Не удалось проверить новый Worker Google ({reason}). Замеры не включены.", { reason: error.message });
 				return null;
 			} finally {
 				win.clearTimeout?.(timer);
@@ -976,7 +1386,7 @@
 		if (enabled || shared()) {
 			if (typeof nativeWorker !== "function") {
 				initial.status = "unsupported";
-				initial.error = "Worker недоступен в контексте страницы.";
+				initial.error = t("Worker недоступен в контексте страницы.");
 			} else {
 				proxy = new Proxy(nativeWorker, { construct(target, args, newTarget) {
 					const worker = Reflect.construct(target, args, newTarget);
@@ -991,7 +1401,7 @@
 					if (!host) return worker;
 					if (workerHost && workerHost !== host) {
 						initial.status = "unsupported";
-						initial.error = "Google изменил Worker. Нужна новая проверка совместимости.";
+						initial.error = t("Google изменил Worker. Нужна новая проверка совместимости.");
 						return worker;
 					}
 					workerHost = host;
@@ -1018,7 +1428,7 @@
 						profile = found;
 						if (!found && initial.status !== "unsupported") {
 							initial.status = "unsupported";
-							initial.error = "Google изменил Worker: код обвязки отличается от проверенного. Нужна новая проверка совместимости.";
+							initial.error = t("Google изменил Worker: код обвязки отличается от проверенного. Нужна новая проверка совместимости.");
 						}
 						const held = queue.splice(0);
 						pending = null;
@@ -1046,7 +1456,7 @@
 						let forwarded = postArgs, adjusted = false;
 						try {
 							const flags = JSON.parse(message[1]?.flags?.ritz_ef);
-							if (typeof flags.fept !== "boolean") throw Error("Изменилась схема bootstrap Worker.");
+							if (typeof flags.fept !== "boolean") throw Error(t("Изменилась схема bootstrap Worker."));
 							forwarded = postArgs.slice();
 							forwarded[0] = message.slice();
 							forwarded[0][1] = {
@@ -1083,7 +1493,7 @@
 						if (win.Worker === proxy) win.Worker = nativeWorker;
 						if (initial.status === "waiting" || initial.status === "disabled" && shared()) {
 							initial.status = "missed";
-							initial.error = "Раннее подключение пропущено. Перезагрузите таблицу после обновления скрипта.";
+							initial.error = t("Раннее подключение пропущено. Перезагрузите таблицу после обновления скрипта.");
 						}
 					}
 				}, 3e4);
@@ -1547,7 +1957,7 @@
 			const call = part.endsWith("()");
 			value = receiver?.[call ? part.slice(0, -2) : part];
 			if (call) {
-				if (typeof value !== "function" || value.length !== 0) throw Error("Изменилась регистрация панели Google.");
+				if (typeof value !== "function" || value.length !== 0) throw Error(t("Изменилась регистрация панели Google."));
 				value = Reflect.apply(value, receiver, []);
 			}
 		}
@@ -1596,7 +2006,7 @@
 				}
 			}
 			build ??= await discoverNativeBuild(g);
-			if (!build) throw Error("Структура расчёта Google изменилась. Автопоиск не нашёл подтверждённую цепочку. Нужна проверка адаптера.");
+			if (!build) throw Error(t("Структура расчёта Google изменилась. Автопоиск не нашёл подтверждённую цепочку. Нужна проверка адаптера."));
 			selected = build;
 			selector = g[build.globals.dx ?? "dx"];
 			return build;
@@ -1614,8 +2024,14 @@
 				const build = await select();
 				for (const role of roles) {
 					const fn = objects[role] ?? symbol(role);
-					if (!build.fingerprints[role] || typeof fn !== "function") throw Error(`Функция Sheets недоступна (${role}, ${build.id}).`);
-					if (await digest(fn) !== build.fingerprints[role]) throw Error(`Google изменил функцию (${role}, ${build.id}). Нужна проверка адаптера.`);
+					if (!build.fingerprints[role] || typeof fn !== "function") throw Error(t("Функция Sheets недоступна ({role}, {build}).", {
+						role,
+						build: build.id
+					}));
+					if (await digest(fn) !== build.fingerprints[role]) throw Error(t("Google изменил функцию ({role}, {build}). Нужна проверка адаптера.", {
+						role,
+						build: build.id
+					}));
 				}
 			},
 			call(role, ...args) {
@@ -1645,7 +2061,7 @@
 	function createLaunchGuard() {
 		let launching = false;
 		return async function launch(action) {
-			if (launching) throw Error("Запуск расчёта уже выполняется.");
+			if (launching) throw Error(t("Запуск расчёта уже выполняется."));
 			launching = true;
 			try {
 				return await action();
@@ -1892,7 +2308,7 @@
 	};
 	function createRelationBindings(g) {
 		const globals = /* @__PURE__ */ new Map(), methods = /* @__PURE__ */ new WeakMap();
-		const changed = (role) => Error(`Google изменил источник связей (${role}). Нужна проверка совместимости.`);
+		const changed = (role) => Error(t("Google изменил источник связей ({role}). Нужна проверка совместимости.", { role }));
 		function verified(role, fn) {
 			const view = typeof fn === "function" ? align(roles$2[role].source, source$1(fn)) : null;
 			if (!view) throw changed(role);
@@ -1928,7 +2344,7 @@
 				globals.clear();
 				for (const [key, value] of saved) globals.set(key, value);
 			}
-			if (winners.length !== 1) throw Error(`${label} не найден однозначно.`);
+			if (winners.length !== 1) throw Error(t("{label} не найден однозначно.", { label }));
 			for (const [key, value] of winners[0].cache) globals.set(key, value);
 			return winners[0].view;
 		}
@@ -1941,7 +2357,7 @@
 				const text = source$1(fn);
 				if (text.length > length / 2 && text.length < length * 2 && (!marker || text.includes(marker)) && align(roles$2[role].source, text)) names.push(name);
 			}
-			return pick(names, (name) => global(role, name), `Функция связей (${role})`);
+			return pick(names, (name) => global(role, name), t("Функция связей ({role})", { role }));
 		}
 		function candidates(object, role) {
 			const found = /* @__PURE__ */ new Map();
@@ -1953,14 +2369,14 @@
 		}
 		function cached(object, key, resolve) {
 			const prototype = object && Object.getPrototypeOf(object);
-			if (!prototype) throw Error(`Объект связей недоступен (${key}).`);
+			if (!prototype) throw Error(t("Объект связей недоступен ({key}).", { key }));
 			if (!methods.has(prototype)) methods.set(prototype, /* @__PURE__ */ new Map());
 			const cache = methods.get(prototype);
 			if (!cache.has(key)) cache.set(key, resolve());
 			return cache.get(key);
 		}
 		function method(object, role) {
-			return cached(object, role, () => pick(candidates(object, role), withCallees, `Метод связей (${role})`));
+			return cached(object, role, () => pick(candidates(object, role), withCallees, t("Метод связей ({role})", { role })));
 		}
 		function named(object, name, role) {
 			return cached(object, `${role}:${name}`, () => withCallees(Object.assign(verified(role, object?.[name]), { name })));
@@ -1974,7 +2390,7 @@
 					return false;
 				}
 			});
-			if (keys.length !== 1) throw Error(`Поле связей (${role}) не найдено однозначно.`);
+			if (keys.length !== 1) throw Error(t("Поле связей ({role}) не найдено однозначно.", { role }));
 			return keys[0];
 		}
 		function rangeFields() {
@@ -1991,7 +2407,7 @@
 		function indexTree(index, query, sheetId) {
 			const holder = own$2(index, query.at("this.@ma.get(a)"));
 			const sheetMap = own$2(holder, method(holder, "sheetMapEach").at("var c=this.@ma"));
-			if (!sheetMap || Object.getPrototypeOf(sheetMap) !== null) throw Error("Обратный индекс недоступен.");
+			if (!sheetMap || Object.getPrototypeOf(sheetMap) !== null) throw Error(t("Обратный индекс недоступен."));
 			const tree = own$2(sheetMap, sheetId);
 			if (!tree) return null;
 			const treeQuery = named(tree, query.at("k.@pKa(a,c"), "treeQuery"), walk = global("$Ef");
@@ -2081,7 +2497,7 @@
 				}
 				if (!trees.length) return null;
 				const primary = trees.filter((tree) => direction(tree) === "primary");
-				if (primary.length !== 1) throw Error("Направление обратного индекса не подтверждено.");
+				if (primary.length !== 1) throw Error(t("Направление обратного индекса не подтверждено."));
 				return {
 					...primary[0],
 					range: rangeFields(),
@@ -2116,14 +2532,14 @@
 			status: "unavailable",
 			reason
 		});
-		if (g.document.hidden) return invalid("Вкладка браузера скрыта.");
-		if (url.origin !== "https://docs.google.com" || !/^\/spreadsheets\/(?:u\/\d+\/)?d\/[\w-]+\/edit\/?$/.test(url.pathname)) return invalid("Откройте Google Таблицу.");
-		if (hash.has("fvid") || url.searchParams.has("fvid")) return invalid("Связи в режиме фильтра пока недоступны.");
-		if (!match || g.document.activeElement === input || g.document.activeElement === box) return invalid("Выберите одну ячейку в таблице.");
-		if (!sheetId || !/^\d+$/.test(sheetId)) return invalid("Не удалось определить выбранный лист.");
+		if (g.document.hidden) return invalid(t("Вкладка браузера скрыта."));
+		if (url.origin !== "https://docs.google.com" || !/^\/spreadsheets\/(?:u\/\d+\/)?d\/[\w-]+\/edit\/?$/.test(url.pathname)) return invalid(t("Откройте Google Таблицу."));
+		if (hash.has("fvid") || url.searchParams.has("fvid")) return invalid(t("Связи в режиме фильтра пока недоступны."));
+		if (!match || g.document.activeElement === input || g.document.activeElement === box) return invalid(t("Выберите одну ячейку в таблице."));
+		if (!sheetId || !/^\d+$/.test(sheetId)) return invalid(t("Не удалось определить выбранный лист."));
 		const row = Number(match[2]) - 1;
 		const col = [...match[1]].reduce((n, c) => n * 26 + c.charCodeAt(0) - 64, 0) - 1;
-		if (!Number.isSafeInteger(row) || !Number.isSafeInteger(col)) return invalid("Адрес ячейки недоступен.");
+		if (!Number.isSafeInteger(row) || !Number.isSafeInteger(col)) return invalid(t("Адрес ячейки недоступен."));
 		return {
 			key: `${url.pathname}:${sheetId}:${address}`,
 			status: "selected",
@@ -2165,7 +2581,7 @@
 		].includes(sentinel)) {
 			const first = letters(cs) + (rs + 1), last = letters(ce - 1) + re;
 			address = first === last ? first : `${first}:${last}`;
-		} else address = "Открытый диапазон";
+		} else address = t("Открытый диапазон");
 		return {
 			key: `${type}:${sheetId}:${rs}:${cs}:${re}:${ce}`,
 			type,
@@ -2177,7 +2593,7 @@
 		if (!index?.root || typeof index.root !== "object") return {
 			available: false,
 			entries: [],
-			reason: "Дерево обратных связей недоступно."
+			reason: t("Дерево обратных связей недоступно.")
 		};
 		const stack = [index.root], entries = /* @__PURE__ */ new Map(), { node: fields, rect: bounds } = index;
 		let nodes = 0, records = 0, partial = false;
@@ -2258,8 +2674,8 @@
 			try {
 				const grid = await gridOf(selection.sheetId);
 				const reader = grid && bindings.cellReader(grid);
-				if (!reader) throw Error("Данные листа ещё не загружены.");
-				if (!Number.isInteger(reader.rows) || !Number.isInteger(reader.columns) || selection.row >= reader.rows || selection.col >= reader.columns) throw Error("Ячейка вне загруженного листа.");
+				if (!reader) throw Error(t("Данные листа ещё не загружены."));
+				if (!Number.isInteger(reader.rows) || !Number.isInteger(reader.columns) || selection.row >= reader.rows || selection.col >= reader.columns) throw Error(t("Ячейка вне загруженного листа."));
 				const cell = grid[reader.cellMethod](selection.row, selection.col);
 				const forward = bindings.forward(cell);
 				if (readSelection(g).key !== selection.key) return {
@@ -2290,7 +2706,7 @@
 				});
 				try {
 					const index = bindings.reverse(reader.chunk, sheetId);
-					if (!index) throw Error("Нет обратного индекса этого листа.");
+					if (!index) throw Error(t("Нет обратного индекса этого листа."));
 					if (readSelection(g).key !== selection.key) return {
 						...report,
 						status: "stale"
@@ -2433,8 +2849,8 @@
 			return method(model, "wm")[native.build.fields.bookGrid ?? "Ad"](sheetId);
 		});
 		function app() {
-			if (location.origin !== "https://docs.google.com" || !/^\/spreadsheets\/(?:u\/\d+\/)?d\/[\w-]+\/edit\/?$/.test(location.pathname)) throw Error("Откройте Google-таблицу.");
-			if (!document.getElementById("t-name-box") || typeof g.waffle_api?.getInstanceOfApp !== "function") throw Error("Дождитесь загрузки таблицы.");
+			if (location.origin !== "https://docs.google.com" || !/^\/spreadsheets\/(?:u\/\d+\/)?d\/[\w-]+\/edit\/?$/.test(location.pathname)) throw Error(t("Откройте Google-таблицу."));
+			if (!document.getElementById("t-name-box") || typeof g.waffle_api?.getInstanceOfApp !== "function") throw Error(t("Дождитесь загрузки таблицы."));
 			return g.waffle_api.getInstanceOfApp();
 		}
 		function currentView() {
@@ -2486,7 +2902,7 @@
 				if (currentView() && (document.querySelector(".waffle-performancetool-calculations-body") || document.querySelector(".waffle-performancetool-landingpage-next-button"))) return { opened: true };
 				await wait(100);
 			}
-			throw Error("Панель ещё загружается. Повторите открытие через несколько секунд.");
+			throw Error(t("Панель ещё загружается. Повторите открытие через несколько секунд."));
 		}
 		async function capacity(model) {
 			let count = null, limit = null;
@@ -2500,23 +2916,23 @@
 				} catch {}
 				if (native.build.capacity) {
 					const grids = method(model, "wm")[native.build.fields.bookList ?? "xU"]();
-					if (!Array.isArray(grids)) throw Error("Список листов недоступен.");
+					if (!Array.isArray(grids)) throw Error(t("Список листов недоступен."));
 					let total = 0;
 					for (const grid of grids) {
 						const storage = grid?.[native.build.capacity.grid];
 						const rows = storage?.[native.build.capacity.rows], columns = storage?.[native.build.capacity.columns];
 						const cells = rows * columns;
-						if (!Number.isSafeInteger(rows) || !Number.isSafeInteger(columns) || rows < 0 || columns < 0 || !Number.isSafeInteger(cells) || !Number.isSafeInteger(total + cells)) throw Error("Размеры листов изменились или недоступны.");
+						if (!Number.isSafeInteger(rows) || !Number.isSafeInteger(columns) || rows < 0 || columns < 0 || !Number.isSafeInteger(cells) || !Number.isSafeInteger(total + cells)) throw Error(t("Размеры листов изменились или недоступны."));
 						total += cells;
 					}
-					if (limit !== null && total > limit) throw Error("Размер книги превышает известный лимит; счётчик требует проверки.");
+					if (limit !== null && total > limit) throw Error(t("Размер книги превышает известный лимит; счётчик требует проверки."));
 					return {
 						count: total,
 						limit,
 						source: `derived:${native.build.id}:native-grid-dimensions`
 					};
 				}
-				if (typeof native.symbol("I2i") !== "function") throw Error("Счётчик ячеек недоступен.");
+				if (typeof native.symbol("I2i") !== "function") throw Error(t("Счётчик ячеек недоступен."));
 				if (native.build.fingerprints.I2i) await verify(["I2i"]);
 				const used = call("I2i", method(model, "wm"))[native.build.fields.count]();
 				if (Number.isSafeInteger(used) && used >= 0) count = used;
@@ -2551,7 +2967,7 @@
 				const sheetIdField = native.build.fields.sheetId;
 				const [nameField, nameValue] = native.build.fields.sheetNamePath ?? ["Bk", "ea"];
 				const list = method(model, "wm")[native.build.fields.bookList ?? "xU"]();
-				if (!Array.isArray(list)) throw Error("Список листов этой сборки недоступен.");
+				if (!Array.isArray(list)) throw Error(t("Список листов этой сборки недоступен."));
 				return list.slice(0, 2e3).filter((grid) => grid && typeof grid[sheetIdField] === "string" && method(model, "oO", grid[sheetIdField]) && method(model, "Vod", grid[sheetIdField]) === 0).map((grid) => {
 					const name = grid[nameField]?.[nameValue];
 					return {
@@ -2609,7 +3025,7 @@
 			try {
 				await verify(["T5h", "Abg"]);
 				const host = timing.status().workerHost;
-				if (host && native.build.workerHost && host !== native.build.workerHost) throw Error("Версии страницы и Worker различаются. Нужна проверка совместимости.");
+				if (host && native.build.workerHost && host !== native.build.workerHost) throw Error(t("Версии страницы и Worker различаются. Нужна проверка совместимости."));
 				return timing.results();
 			} catch (error) {
 				return {
@@ -2643,10 +3059,10 @@
 			try {
 				result.latency = tools.latencyLogger() ? readLatencyStats(g) : {
 					entries: [],
-					reason: "Источник журнала не прошёл проверку совместимости"
+					reason: t("Источник журнала не прошёл проверку совместимости")
 				};
 			} catch {
-				result.latency.reason = "Источник журнала не прошёл проверку совместимости";
+				result.latency.reason = t("Источник журнала не прошёл проверку совместимости");
 			}
 			try {
 				const feature = currentView();
@@ -2654,10 +3070,10 @@
 				const bytes = size?.bytes;
 				result.modelSize = !feature ? {
 					bytes: null,
-					reason: "Нет данных штатной панели"
+					reason: t("Нет данных штатной панели")
 				} : !size ? {
 					bytes: null,
-					reason: "Источник размера не прошёл проверку совместимости"
+					reason: t("Источник размера не прошёл проверку совместимости")
 				} : Number.isSafeInteger(bytes) && bytes > 0 ? {
 					bytes,
 					source: "native-panel-cache",
@@ -2665,10 +3081,10 @@
 					reason: null
 				} : {
 					bytes: null,
-					reason: "Google ещё не предоставил размер"
+					reason: t("Google ещё не предоставил размер")
 				};
 			} catch {
-				result.modelSize.reason = "Источник размера не прошёл проверку совместимости";
+				result.modelSize.reason = t("Источник размера не прошёл проверку совместимости");
 			}
 			return result;
 		}
@@ -2712,7 +3128,7 @@
 			const session = data.session;
 			const setup = timing.status();
 			return {
-				version: "0.3.19",
+				version: "0.3.20",
 				nativeBuild: native.build.id,
 				bookPath: location.pathname,
 				capturedAt: Date.now(),
@@ -2732,7 +3148,7 @@
 				session: {
 					...session,
 					observations: session.observations.map(decorate),
-					note: "Сумма фаз и максимумы ячеек с раннего подключения к Worker. Пропущенные результаты не восстанавливаются."
+					note: t("Сумма фаз и максимумы ячеек с раннего подключения к Worker. Пропущенные результаты не восстанавливаются.")
 				},
 				source: "Google Sheets Worker command 1 / field 6; receivedAt is local Date.now",
 				limits: {
@@ -2758,10 +3174,10 @@
 				const data = await measurements(), busy = progress();
 				const canObserve = timing.ready() && !data.error;
 				updateRequest(data, busy);
-				if (request?.state === "waiting" || busy) throw Error("Дождитесь текущего расчёта Sheets.");
+				if (request?.state === "waiting" || busy) throw Error(t("Дождитесь текущего расчёта Sheets."));
 				await verify(["t4e"], { t4e: model[native.member("t4e")] });
 				if (sheetId !== null) {
-					if (typeof sheetId !== "string" || !sheets().some((s) => s.id === sheetId)) throw Error("Выберите существующий лист.");
+					if (typeof sheetId !== "string" || !sheets().some((s) => s.id === sheetId)) throw Error(t("Выберите существующий лист."));
 					await verify([
 						"ns",
 						"Woh",
@@ -2772,10 +3188,10 @@
 						"qP",
 						"jmg"
 					]);
-					if (!native.symbol("tmg")) throw Error("Очередь расчёта этой версии недоступна.");
-					if (!method(model, "oO", sheetId) || method(model, "Vod", sheetId) !== 0 || !method(model, "wm")[native.build.fields.bookGrid ?? "Ad"](sheetId)) throw Error("Лист этого типа не поддерживается.");
+					if (!native.symbol("tmg")) throw Error(t("Очередь расчёта этой версии недоступна."));
+					if (!method(model, "oO", sheetId) || method(model, "Vod", sheetId) !== 0 || !method(model, "wm")[native.build.fields.bookGrid ?? "Ad"](sheetId)) throw Error(t("Лист этого типа не поддерживается."));
 				}
-				if (progress()) throw Error("Дождитесь текущего расчёта Sheets.");
+				if (progress()) throw Error(t("Дождитесь текущего расчёта Sheets."));
 				request = {
 					id: crypto.randomUUID(),
 					startedAt: Date.now(),
@@ -2812,7 +3228,7 @@
 			});
 		}
 		return Object.freeze({
-			version: "0.3.19",
+			version: "0.3.20",
 			open,
 			read,
 			refresh,
@@ -18439,7 +18855,7 @@
 			class: "combobox-empty",
 			role: "status"
 		},
-		"Листы не найдены"
+		" "
 	]]);
 	var root_2$11 = /* @__PURE__ */ from_tree([
 		[
@@ -18457,12 +18873,12 @@
 		let model = prop($$props, "model", 7);
 		let items = /* @__PURE__ */ user_derived(() => [...model().sheets, {
 			value: "all",
-			label: "Вся таблица"
+			label: t("Вся таблица")
 		}]);
 		let search = /* @__PURE__ */ state(null);
 		let open = /* @__PURE__ */ state(false);
-		let query = /* @__PURE__ */ user_derived(() => get$2(search)?.trim().toLocaleLowerCase("ru-RU") ?? "");
-		let filtered = /* @__PURE__ */ user_derived(() => get$2(items).filter((item) => item.label.toLocaleLowerCase("ru-RU").includes(get$2(query))));
+		let query = /* @__PURE__ */ user_derived(() => get$2(search)?.trim().toLocaleLowerCase(numberLocale()) ?? "");
+		let filtered = /* @__PURE__ */ user_derived(() => get$2(items).filter((item) => item.label.toLocaleLowerCase(numberLocale()).includes(get$2(query))));
 		function changeOpen(next) {
 			set(open, next, true);
 			if (!next) set(search, null);
@@ -18495,29 +18911,43 @@
 						var fragment_1 = root_2$11();
 						var div = first_child(fragment_1);
 						var node_1 = child(div);
-						component(node_1, () => Combobox_input, ($$anchor, Combobox_Input) => {
-							Combobox_Input($$anchor, {
-								class: "sheet-combobox-input",
-								"aria-label": "Лист для расчёта",
-								placeholder: "Найти лист…",
-								oninput: (event) => {
-									set(search, event.currentTarget.value, true);
-								},
-								onfocus: (event) => {
-									event.currentTarget.select();
-								}
+						{
+							let $0 = /* @__PURE__ */ user_derived(() => t("Лист для расчёта"));
+							let $1 = /* @__PURE__ */ user_derived(() => t("Найти лист…"));
+							component(node_1, () => Combobox_input, ($$anchor, Combobox_Input) => {
+								Combobox_Input($$anchor, {
+									class: "sheet-combobox-input",
+									get "aria-label"() {
+										return get$2($0);
+									},
+									get placeholder() {
+										return get$2($1);
+									},
+									oninput: (event) => {
+										set(search, event.currentTarget.value, true);
+									},
+									onfocus: (event) => {
+										event.currentTarget.select();
+									}
+								});
 							});
-						});
-						component(sibling(node_1, 2), () => Combobox_trigger, ($$anchor, Combobox_Trigger) => {
-							Combobox_Trigger($$anchor, {
-								class: "sheet-combobox-trigger",
-								"aria-label": "Показать листы",
-								children: ($$anchor, $$slotProps) => {
-									Chevron_down($$anchor, { size: 14 });
-								},
-								$$slots: { default: true }
+						}
+						var node_2 = sibling(node_1, 2);
+						{
+							let $0 = /* @__PURE__ */ user_derived(() => t("Показать листы"));
+							component(node_2, () => Combobox_trigger, ($$anchor, Combobox_Trigger) => {
+								Combobox_Trigger($$anchor, {
+									class: "sheet-combobox-trigger",
+									get "aria-label"() {
+										return get$2($0);
+									},
+									children: ($$anchor, $$slotProps) => {
+										Chevron_down($$anchor, { size: 14 });
+									},
+									$$slots: { default: true }
+								});
 							});
-						});
+						}
 						reset(div);
 						component(sibling(div, 2), () => Portal, ($$anchor, Combobox_Portal) => {
 							Combobox_Portal($$anchor, {
@@ -18570,7 +19000,10 @@
 																}
 																append($$anchor, fragment_6);
 															}, ($$anchor) => {
-																append($$anchor, root_1$12());
+																var div_1 = root_1$12();
+																var text_1 = only_child(div_1, true);
+																template_effect(($0) => set_text(text_1, $0), [() => t("Листы не найдены")]);
+																append($$anchor, div_1);
 															});
 															append($$anchor, fragment_5);
 														},
@@ -18601,25 +19034,25 @@
 	var root$14 = /* @__PURE__ */ from_tree([[
 		"p",
 		{ class: "demo-disclosure" },
-		"Макет с демо-данными."
+		" "
 	]]);
 	var root_1$11 = /* @__PURE__ */ from_tree([
 		[
 			"p",
 			null,
-			"В списке могут быть не все ячейки. Время загрузки, расход памяти и время частей формулы недоступны."
+			" "
 		],
 		" ",
 		[
 			"p",
 			null,
-			"Замеры до подключения скрипта не сохраняются."
+			" "
 		]
 	], 1);
 	var root_2$10 = /* @__PURE__ */ from_tree([[
 		"button",
 		{ class: "text-button" },
-		"Выключить замеры в этой таблице"
+		" "
 	]]);
 	var root_3$8 = /* @__PURE__ */ from_tree([
 		[
@@ -18628,7 +19061,7 @@
 			[
 				"strong",
 				null,
-				"Об инструменте"
+				" "
 			],
 			,
 		],
@@ -18636,7 +19069,7 @@
 		[
 			"p",
 			{ class: "tool-origin" },
-			"Расчёт и замеры выполняет Google. Иконка панели открывает штатный инструмент."
+			" "
 		],
 		" ",
 		,
@@ -18646,25 +19079,25 @@
 		[
 			"p",
 			null,
-			"«Пересчитать» — запускает расчёт выбранного листа; связанные листы тоже могут затронуться."
+			" "
 		],
 		" ",
 		[
 			"p",
 			null,
-			"«Со связями» — показывает полученные замеры ячеек других листов."
+			" "
 		],
 		" ",
 		[
 			"p",
 			null,
-			"Время ячейки — её самый долгий замер за период; повторы не складываются."
+			" "
 		],
 		" ",
 		[
 			"p",
 			null,
-			"«С момента открытия» — замеры текущей сессии."
+			" "
 		],
 		" ",
 		,
@@ -18674,12 +19107,9 @@
 			{ class: "help-bottom" },
 			[
 				"button",
-				{
-					class: "text-button",
-					title: "Скачать результаты"
-				},
+				{ class: "text-button" },
 				,
-				" Скачать данные"
+				" "
 			],
 			" ",
 			,
@@ -18697,12 +19127,12 @@
 		[
 			"span",
 			null,
-			"Для адресных замеров нужен ранний запуск."
+			" "
 		],
 		[
 			"button",
 			{ class: "text-button" },
-			"Подключить и перезагрузить"
+			" "
 		]
 	]]);
 	var root_6$4 = /* @__PURE__ */ from_tree([[
@@ -18734,22 +19164,15 @@
 			" ",
 			[
 				"button",
-				{
-					class: "secondary-button google-panel-button",
-					title: "Панель Google",
-					"aria-label": "Открыть панель Google"
-				},
+				{ class: "secondary-button google-panel-button" },
 				,
 			],
 			" ",
 			[
 				"button",
-				{
-					class: "secondary-button experiment-toggle",
-					title: "Экспериментальные метрики"
-				},
+				{ class: "secondary-button experiment-toggle" },
 				,
-				" Эксперимент"
+				" "
 			]
 		],
 		" ",
@@ -18772,97 +19195,157 @@
 				children: ($$anchor, $$slotProps) => {
 					var fragment_1 = root_4$6();
 					var node_2 = first_child(fragment_1);
-					component(node_2, () => Popover_trigger, ($$anchor, Popover_Trigger) => {
-						Popover_Trigger($$anchor, {
-							class: "icon-button help-trigger",
-							"aria-label": "О замерах",
-							get ref() {
-								return get$2(helpTrigger);
-							},
-							set ref($$value) {
-								set(helpTrigger, $$value, true);
-							},
-							children: ($$anchor, $$slotProps) => {
-								Circle_question_mark($$anchor, { size: 16 });
-							},
-							$$slots: { default: true }
+					{
+						let $0 = /* @__PURE__ */ user_derived(() => t("О замерах"));
+						component(node_2, () => Popover_trigger, ($$anchor, Popover_Trigger) => {
+							Popover_Trigger($$anchor, {
+								class: "icon-button help-trigger",
+								get "aria-label"() {
+									return get$2($0);
+								},
+								get ref() {
+									return get$2(helpTrigger);
+								},
+								set ref($$value) {
+									set(helpTrigger, $$value, true);
+								},
+								children: ($$anchor, $$slotProps) => {
+									Circle_question_mark($$anchor, { size: 16 });
+								},
+								$$slots: { default: true }
+							});
 						});
-					});
+					}
 					component(sibling(node_2, 2), () => Portal, ($$anchor, Popover_Portal) => {
 						Popover_Portal($$anchor, {
 							children: ($$anchor, $$slotProps) => {
 								var fragment_3 = comment();
-								component(first_child(fragment_3), () => Popover_content, ($$anchor, Popover_Content) => {
-									Popover_Content($$anchor, {
-										class: "ui-help",
-										sideOffset: 8,
-										align: "end",
-										tabindex: "-1",
-										"aria-label": "Об инструменте",
-										onOpenAutoFocus: (event) => {
-											event.preventDefault();
-											get$2(helpContent)?.focus({ preventScroll: true });
-										},
-										onInteractOutside: (event) => {
-											if (event.composedPath().includes(get$2(helpTrigger))) event.preventDefault();
-										},
-										get ref() {
-											return get$2(helpContent);
-										},
-										set ref($$value) {
-											set(helpContent, $$value, true);
-										},
-										children: ($$anchor, $$slotProps) => {
-											var fragment_4 = root_3$8();
-											var div_1 = first_child(fragment_4);
-											component(sibling(child(div_1)), () => Popover_close, ($$anchor, Popover_Close) => {
-												Popover_Close($$anchor, {
-													class: "icon-button help-close",
-													"aria-label": "Закрыть справку",
-													children: ($$anchor, $$slotProps) => {
-														X($$anchor, { size: 14 });
-													},
-													$$slots: { default: true }
+								var node_4 = first_child(fragment_3);
+								{
+									let $0 = /* @__PURE__ */ user_derived(() => t("Об инструменте"));
+									component(node_4, () => Popover_content, ($$anchor, Popover_Content) => {
+										Popover_Content($$anchor, {
+											class: "ui-help",
+											sideOffset: 8,
+											align: "end",
+											tabindex: "-1",
+											get "aria-label"() {
+												return get$2($0);
+											},
+											onOpenAutoFocus: (event) => {
+												event.preventDefault();
+												get$2(helpContent)?.focus({ preventScroll: true });
+											},
+											onInteractOutside: (event) => {
+												if (event.composedPath().includes(get$2(helpTrigger))) event.preventDefault();
+											},
+											get ref() {
+												return get$2(helpContent);
+											},
+											set ref($$value) {
+												set(helpContent, $$value, true);
+											},
+											children: ($$anchor, $$slotProps) => {
+												var fragment_4 = root_3$8();
+												var div_1 = first_child(fragment_4);
+												var strong = child(div_1);
+												var text = only_child(strong, true);
+												var node_5 = sibling(strong);
+												{
+													let $0 = /* @__PURE__ */ user_derived(() => t("Закрыть справку"));
+													component(node_5, () => Popover_close, ($$anchor, Popover_Close) => {
+														Popover_Close($$anchor, {
+															class: "icon-button help-close",
+															get "aria-label"() {
+																return get$2($0);
+															},
+															children: ($$anchor, $$slotProps) => {
+																X($$anchor, { size: 14 });
+															},
+															$$slots: { default: true }
+														});
+													});
+												}
+												reset(div_1);
+												var p = sibling(div_1, 2);
+												var text_1 = only_child(p, true);
+												var node_6 = sibling(p, 2);
+												var consequent = ($$anchor) => {
+													var p_1 = root$14();
+													var text_2 = only_child(p_1, true);
+													template_effect(($0) => set_text(text_2, $0), [() => t("Макет с демо-данными.")]);
+													append($$anchor, p_1);
+												};
+												if_block(node_6, ($$render) => {
+													if ($$props.model.isDemo) $$render(consequent);
 												});
-											});
-											reset(div_1);
-											var node_6 = sibling(div_1, 4);
-											var consequent = ($$anchor) => {
-												append($$anchor, root$14());
-											};
-											if_block(node_6, ($$render) => {
-												if ($$props.model.isDemo) $$render(consequent);
-											});
-											var node_7 = sibling(node_6, 12);
-											var consequent_1 = ($$anchor) => {
-												var fragment_6 = root_1$11();
-												next$1(2);
-												append($$anchor, fragment_6);
-											};
-											if_block(node_7, ($$render) => {
-												if (!$$props.model.isDemo) $$render(consequent_1);
-											});
-											var div_2 = sibling(node_7, 2);
-											var button = child(div_2);
-											Download(child(button), { size: 13 });
-											next$1();
-											reset(button);
-											var node_9 = sibling(button, 2);
-											var consequent_2 = ($$anchor) => {
-												var button_1 = root_2$10();
-												delegated("click", button_1, () => $$props.model.disconnect());
-												append($$anchor, button_1);
-											};
-											if_block(node_9, ($$render) => {
-												if (!$$props.model.isDemo && !$$props.model.needsSetup) $$render(consequent_2);
-											});
-											reset(div_2);
-											delegated("click", button, () => $$props.model.download());
-											append($$anchor, fragment_4);
-										},
-										$$slots: { default: true }
+												var p_2 = sibling(node_6, 4);
+												var text_3 = only_child(p_2, true);
+												var p_3 = sibling(p_2, 2);
+												var text_4 = only_child(p_3, true);
+												var p_4 = sibling(p_3, 2);
+												var text_5 = only_child(p_4, true);
+												var p_5 = sibling(p_4, 2);
+												var text_6 = only_child(p_5, true);
+												var node_7 = sibling(p_5, 2);
+												var consequent_1 = ($$anchor) => {
+													var fragment_6 = root_1$11();
+													var p_6 = first_child(fragment_6);
+													var text_7 = only_child(p_6, true);
+													var text_8 = only_child(sibling(p_6, 2), true);
+													template_effect(($0, $1) => {
+														set_text(text_7, $0);
+														set_text(text_8, $1);
+													}, [() => t("В списке могут быть не все ячейки. Время загрузки, расход памяти и время частей формулы недоступны."), () => t("Замеры до подключения скрипта не сохраняются.")]);
+													append($$anchor, fragment_6);
+												};
+												if_block(node_7, ($$render) => {
+													if (!$$props.model.isDemo) $$render(consequent_1);
+												});
+												var div_2 = sibling(node_7, 2);
+												var button = child(div_2);
+												var node_8 = child(button);
+												Download(node_8, { size: 13 });
+												var text_9 = sibling(node_8);
+												reset(button);
+												var node_9 = sibling(button, 2);
+												var consequent_2 = ($$anchor) => {
+													var button_1 = root_2$10();
+													var text_10 = only_child(button_1, true);
+													template_effect(($0) => set_text(text_10, $0), [() => t("Выключить замеры в этой таблице")]);
+													delegated("click", button_1, () => $$props.model.disconnect());
+													append($$anchor, button_1);
+												};
+												if_block(node_9, ($$render) => {
+													if (!$$props.model.isDemo && !$$props.model.needsSetup) $$render(consequent_2);
+												});
+												reset(div_2);
+												template_effect(($0, $1, $2, $3, $4, $5, $6, $7) => {
+													set_text(text, $0);
+													set_text(text_1, $1);
+													set_text(text_3, $2);
+													set_text(text_4, $3);
+													set_text(text_5, $4);
+													set_text(text_6, $5);
+													set_attribute(button, "title", $6);
+													set_text(text_9, ` ${$7 ?? ""}`);
+												}, [
+													() => t("Об инструменте"),
+													() => t("Расчёт и замеры выполняет Google. Иконка панели открывает штатный инструмент."),
+													() => t("«Пересчитать» — запускает расчёт выбранного листа; связанные листы тоже могут затронуться."),
+													() => t("«Со связями» — показывает полученные замеры ячеек других листов."),
+													() => t("Время ячейки — её самый долгий замер за период; повторы не складываются."),
+													() => t("«С момента открытия» — замеры текущей сессии."),
+													() => t("Скачать результаты"),
+													() => t("Скачать данные")
+												]);
+												delegated("click", button, () => $$props.model.download());
+												append($$anchor, fragment_4);
+											},
+											$$slots: { default: true }
+										});
 									});
-								});
+								}
 								append($$anchor, fragment_3);
 							},
 							$$slots: { default: true }
@@ -18887,21 +19370,29 @@
 			if ($$props.model.running) $$render(consequent_3);
 			else $$render(alternate, -1);
 		});
-		var text = sibling(node_10);
+		var text_11 = sibling(node_10);
 		reset(button_2);
 		var button_3 = sibling(button_2, 2);
 		Panel_right(child(button_3), { size: 15 });
 		reset(button_3);
 		var button_4 = sibling(button_3, 2);
-		Flask_conical(child(button_4), { size: 14 });
-		next$1();
+		var node_12 = child(button_4);
+		Flask_conical(node_12, { size: 14 });
+		var text_12 = sibling(node_12);
 		reset(button_4);
 		reset(div_3);
 		var node_13 = sibling(div_3, 2);
 		var consequent_4 = ($$anchor) => {
 			var div_4 = root_5$4();
-			var button_5 = sibling(child(div_4));
+			var span = child(div_4);
+			var text_13 = only_child(span, true);
+			var button_5 = sibling(span);
+			var text_14 = only_child(button_5, true);
 			reset(div_4);
+			template_effect(($0, $1) => {
+				set_text(text_13, $0);
+				set_text(text_14, $1);
+			}, [() => t("Для адресных замеров нужен ранний запуск."), () => t("Подключить и перезагрузить")]);
 			delegated("click", button_5, () => $$props.model.connect());
 			append($$anchor, div_4);
 		};
@@ -18910,19 +19401,29 @@
 		});
 		var node_14 = sibling(node_13, 2);
 		var consequent_5 = ($$anchor) => {
-			var p_1 = root_6$4();
-			var text_1 = only_child(p_1, true);
-			template_effect(() => set_text(text_1, $$props.model.error));
-			append($$anchor, p_1);
+			var p_8 = root_6$4();
+			var text_15 = only_child(p_8, true);
+			template_effect(() => set_text(text_15, $$props.model.error));
+			append($$anchor, p_8);
 		};
 		if_block(node_14, ($$render) => {
 			if ($$props.model.error) $$render(consequent_5);
 		});
-		template_effect(() => {
+		template_effect(($0, $1, $2, $3, $4) => {
 			button_2.disabled = $$props.model.running;
-			set_text(text, ` ${$$props.model.running ? "Расчёт…" : "Пересчитать"}`);
+			set_text(text_11, ` ${$0 ?? ""}`);
+			set_attribute(button_3, "title", $1);
+			set_attribute(button_3, "aria-label", $2);
 			set_attribute(button_4, "aria-pressed", $$props.model.experimentalOpen ?? false);
-		});
+			set_attribute(button_4, "title", $3);
+			set_text(text_12, ` ${$4 ?? ""}`);
+		}, [
+			() => $$props.model.running ? t("Расчёт…") : t("Пересчитать"),
+			() => t("Панель Google"),
+			() => t("Открыть панель Google"),
+			() => t("Экспериментальные метрики"),
+			() => t("Эксперимент")
+		]);
 		delegated("click", button_2, () => $$props.model.recalculate());
 		delegated("click", button_3, () => $$props.model.openGoogle());
 		delegated("click", button_4, () => $$props.model.setExperimental(!$$props.model.experimentalOpen));
@@ -18979,7 +19480,7 @@
 	]]);
 	var root_4$5 = /* @__PURE__ */ from_tree([[
 		"figure",
-		{ "aria-label": "Распределение времени по этапам" },
+		null,
 		[
 			"div",
 			{ class: "chart-heading" },
@@ -19119,23 +19620,28 @@
 			var figcaption = root_3$7();
 			var span_4 = child(figcaption);
 			var text_5 = only_child(span_4);
-			var text_6 = only_child(sibling(span_4));
+			var text_6 = only_child(sibling(span_4), true);
 			reset(figcaption);
 			template_effect(($0, $1) => {
 				set_text(text_5, `${$0 ?? ""}%`);
-				set_text(text_6, `времени — ${$1 ?? ""}`);
-			}, [() => Math.round(get$2(largest).ms / get$2(total) * 100), () => get$2(largest).label.toLocaleLowerCase("ru-RU")]);
+				set_text(text_6, $1);
+			}, [() => Math.round(get$2(largest).ms / get$2(total) * 100), () => t("времени — {phase}", { phase: get$2(largest).label.toLocaleLowerCase(numberLocale()) })]);
 			append($$anchor, figcaption);
 		};
 		if_block(node_3, ($$render) => {
 			if (get$2(complete) && get$2(largest) && get$2(total) > 0) $$render(consequent_2);
 		});
 		reset(figure);
-		template_effect(($0) => {
+		template_effect(($0, $1, $2) => {
 			classes = set_class(figure, 1, "phase-chart", null, classes, { small: small() });
-			set_text(text, get$2(complete) ? "Общий расчёт" : "Известное время");
-			set_text(text_1, $0);
-		}, [() => formatTime(get$2(total))]);
+			set_attribute(figure, "aria-label", $0);
+			set_text(text, $1);
+			set_text(text_1, $2);
+		}, [
+			() => t("Распределение времени по этапам"),
+			() => get$2(complete) ? t("Общий расчёт") : t("Известное время"),
+			() => formatTime(get$2(total))
+		]);
 		append($$anchor, figure);
 		pop();
 	}
@@ -19181,7 +19687,7 @@
 		[
 			"h3",
 			null,
-			"Число ячеек"
+			" "
 		],
 		" ",
 		,
@@ -19189,17 +19695,21 @@
 	function CellCapacity($$anchor, $$props) {
 		const id = props_id();
 		push($$props, true);
-		const compact = new Intl.NumberFormat("ru-RU", {
+		const compact = new Intl.NumberFormat(numberLocale(), {
 			notation: "compact",
 			compactDisplay: "long",
 			maximumFractionDigits: 1
 		});
-		const exact = new Intl.NumberFormat("ru-RU");
+		const exact = new Intl.NumberFormat(numberLocale());
 		const available = /* @__PURE__ */ user_derived(() => Number.isFinite($$props.count) && $$props.count >= 0 && Number.isFinite($$props.limit) && $$props.limit > 0);
 		const fill = /* @__PURE__ */ user_derived(() => get$2(available) ? Math.min($$props.count / $$props.limit, 1) * 100 : null);
-		const description = /* @__PURE__ */ user_derived(() => get$2(available) ? `${exact.format($$props.count)} из ${exact.format($$props.limit)} ячеек` : "Данные недоступны");
+		const description = /* @__PURE__ */ user_derived(() => get$2(available) ? t("{count} из {limit} ячеек", {
+			count: exact.format($$props.count),
+			limit: exact.format($$props.limit)
+		}) : t("Данные недоступны"));
 		var section = root_2$8();
 		var h3 = child(section);
+		var text = only_child(h3, true);
 		var node = sibling(h3, 2);
 		var consequent = ($$anchor) => {
 			var fragment = root$12();
@@ -19209,10 +19719,10 @@
 			reset(div);
 			var p = sibling(div, 2);
 			var span = child(p);
-			var text = only_child(span, true);
-			var text_1 = sibling(span);
+			var text_1 = only_child(span, true);
+			var text_2 = sibling(span);
 			reset(p);
-			template_effect(($0, $1, $2) => {
+			template_effect(($0, $1, $2, $3) => {
 				set_attribute(div, "aria-labelledby", id);
 				set_attribute(div, "aria-valuemax", $$props.limit);
 				set_attribute(div, "aria-valuenow", $0);
@@ -19220,19 +19730,20 @@
 				set_attribute(div, "title", get$2(description));
 				styles = set_style(div_1, "", styles, { width: `${get$2(fill)}%` });
 				set_attribute(p, "title", get$2(description));
-				set_text(text, $1);
-				set_text(text_1, ` из ${$2 ?? ""}`);
+				set_text(text_1, $1);
+				set_text(text_2, ` ${$2 ?? ""} ${$3 ?? ""}`);
 			}, [
 				() => Math.min($$props.count, $$props.limit),
 				() => compact.format($$props.count),
+				() => t("из"),
 				() => compact.format($$props.limit)
 			]);
 			append($$anchor, fragment);
 		};
 		var alternate = ($$anchor) => {
 			var fragment_1 = root_1$9();
-			var text_2 = only_child(sibling(first_child(fragment_1), 2), true);
-			template_effect(() => set_text(text_2, get$2(description)));
+			var text_3 = only_child(sibling(first_child(fragment_1), 2), true);
+			template_effect(() => set_text(text_3, get$2(description)));
 			append($$anchor, fragment_1);
 		};
 		if_block(node, ($$render) => {
@@ -19240,10 +19751,11 @@
 			else $$render(alternate, -1);
 		});
 		reset(section);
-		template_effect(() => {
+		template_effect(($0) => {
 			set_attribute(section, "aria-labelledby", id);
 			set_attribute(h3, "id", id);
-		});
+			set_text(text, $0);
+		}, [() => t("Число ячеек")]);
 		append($$anchor, section);
 		pop();
 	}
@@ -19349,13 +19861,13 @@
 			var node_4 = child(button);
 			content(node_4);
 			reset(button);
-			template_effect(() => {
+			template_effect(($0) => {
 				classes_1 = set_class(button, 1, "formula-preview", null, classes_1, { expanded: get$2(expanded) });
 				set_attribute(button, "aria-expanded", get$2(expanded));
-				set_attribute(button, "aria-label", `${get$2(expanded) ? "Свернуть" : "Раскрыть"} формулу ${$$props.address}`);
+				set_attribute(button, "aria-label", $0);
 				set_attribute(button, "title", $$props.description);
 				styles = set_style(button, "", styles, { height: `${get$2(expanded) ? get$2(fullHeight) : previewHeight}px` });
-			});
+			}, [() => get$2(expanded) ? t("Свернуть формулу {address}", { address: $$props.address }) : t("Раскрыть формулу {address}", { address: $$props.address })]);
 			delegated("click", button, () => {
 				set(expanded, !get$2(expanded));
 			});
@@ -19387,7 +19899,7 @@
 	var root_1$7 = /* @__PURE__ */ from_tree([[
 		"span",
 		{ class: "cell-address" },
-		"Адрес недоступен"
+		" "
 	]]);
 	var root_2$6 = /* @__PURE__ */ from_tree([[
 		"p",
@@ -19424,14 +19936,13 @@
 	var root_5$3 = /* @__PURE__ */ from_tree([[
 		"li",
 		{ class: "empty-cells" },
-		"Для этого листа и типа в доступных замерах нет результатов."
+		" "
 	]]);
 	var root_6$3 = /* @__PURE__ */ from_tree([[
 		"div",
 		{
 			class: "cell-list-viewport",
 			role: "region",
-			"aria-label": "Результаты вычислений",
 			tabindex: "0"
 		},
 		[
@@ -19480,19 +19991,22 @@
 				append($$anchor, a);
 			};
 			var alternate = ($$anchor) => {
-				append($$anchor, root_1$7());
+				var span_1 = root_1$7();
+				var text_1 = only_child(span_1, true);
+				template_effect(($0) => set_text(text_1, $0), [() => t("Адрес недоступен")]);
+				append($$anchor, span_1);
 			};
 			if_block(node_1, ($$render) => {
 				if (get$2(cell).address && get$2(cell).sheet) $$render(consequent);
 				else $$render(alternate, -1);
 			});
-			var text_1 = only_child(sibling(node_1, 2), true);
+			var text_2 = only_child(sibling(node_1, 2), true);
 			reset(div_1);
 			var node_2 = sibling(div_1, 2);
 			var consequent_1 = ($$anchor) => {
 				var p = root_2$6();
-				var text_2 = only_child(p, true);
-				template_effect(() => set_text(text_2, get$2(cell).rule ?? "Правило проверки недоступно"));
+				var text_3 = only_child(p, true);
+				template_effect(($0) => set_text(text_3, $0), [() => get$2(cell).rule ?? t("Правило проверки недоступно")]);
 				append($$anchor, p);
 			};
 			var consequent_2 = ($$anchor) => {
@@ -19513,8 +20027,8 @@
 			};
 			var alternate_1 = ($$anchor) => {
 				var p_1 = root_3$5();
-				var text_3 = only_child(p_1, true);
-				template_effect(() => set_text(text_3, get$2(cell).type === "format" ? "Правило форматирования недоступно" : "Формула не загружена"));
+				var text_4 = only_child(p_1, true);
+				template_effect(($0) => set_text(text_4, $0), [() => get$2(cell).type === "format" ? t("Правило форматирования недоступно") : t("Формула не загружена")]);
 				append($$anchor, p_1);
 			};
 			if_block(node_2, ($$render) => {
@@ -19527,7 +20041,7 @@
 				set_attribute(span, "aria-label", $0);
 				set_attribute(span, "title", $1);
 				styles = set_style(span, "", styles, { background: $2 });
-				set_text(text_1, $3);
+				set_text(text_2, $3);
 			}, [
 				() => calculationType(get$2(cell).type).label,
 				() => calculationType(get$2(cell).type).label,
@@ -19538,13 +20052,17 @@
 		});
 		var node_3 = sibling(node, 2);
 		var consequent_3 = ($$anchor) => {
-			append($$anchor, root_5$3());
+			var li_1 = root_5$3();
+			var text_5 = only_child(li_1, true);
+			template_effect(($0) => set_text(text_5, $0), [() => t("Для этого листа и типа в доступных замерах нет результатов.")]);
+			append($$anchor, li_1);
 		};
 		if_block(node_3, ($$render) => {
 			if (get$2(shown).length === 0) $$render(consequent_3);
 		});
 		reset(ol);
 		reset(div);
+		template_effect(($0) => set_attribute(div, "aria-label", $0), [() => t("Результаты вычислений")]);
 		append($$anchor, div);
 		pop();
 	}
@@ -19583,8 +20101,7 @@
 		"div",
 		{
 			class: "cell-scope",
-			role: "group",
-			"aria-label": "Область результатов"
+			role: "group"
 		},
 		,
 		" ",
@@ -19596,14 +20113,14 @@
 		" ",
 		[
 			"button",
-			{ title: "Включая ячейки других листов из этого расчёта" },
-			"Со связями"
+			null,
+			" "
 		]
 	]]);
 	var root_1$6 = /* @__PURE__ */ from_tree([[
 		"div",
 		{ class: "scope-caption" },
-		"Вся таблица"
+		" "
 	]]);
 	function CellScope($$anchor, $$props) {
 		push($$props, true);
@@ -19623,13 +20140,23 @@
 			var button = sibling(node_1, 2);
 			var text = only_child(button, true);
 			var button_1 = sibling(button, 2);
+			var text_1 = only_child(button_1, true);
 			reset(div);
-			template_effect(($0, $1) => {
+			template_effect(($0, $1, $2, $3, $4) => {
+				set_attribute(div, "aria-label", $0);
 				set_attribute(button, "aria-pressed", !all());
-				set_attribute(button, "title", $0);
-				set_text(text, $1);
+				set_attribute(button, "title", $1);
+				set_text(text, $2);
 				set_attribute(button_1, "aria-pressed", all());
-			}, [() => $$props.model.sheetName($$props.model.calculatedSheet), () => $$props.model.sheetName($$props.model.calculatedSheet)]);
+				set_attribute(button_1, "title", $3);
+				set_text(text_1, $4);
+			}, [
+				() => t("Область результатов"),
+				() => $$props.model.sheetName($$props.model.calculatedSheet),
+				() => $$props.model.sheetName($$props.model.calculatedSheet),
+				() => t("Включая ячейки других листов из этого расчёта"),
+				() => t("Со связями")
+			]);
 			delegated("click", button, () => {
 				all(false);
 			});
@@ -19639,7 +20166,10 @@
 			append($$anchor, div);
 		};
 		var alternate = ($$anchor) => {
-			append($$anchor, root_1$6());
+			var div_1 = root_1$6();
+			var text_2 = only_child(div_1, true);
+			template_effect(($0) => set_text(text_2, $0), [() => t("Вся таблица")]);
+			append($$anchor, div_1);
 		};
 		if_block(node, ($$render) => {
 			if ($$props.model.calculatedSheet !== "all") $$render(consequent);
@@ -19674,7 +20204,7 @@
 		" ",
 		[
 			"time",
-			{ title: "Последнее обновление результатов" },
+			null,
 			" "
 		]
 	]]);
@@ -19683,10 +20213,10 @@
 		let model = prop($$props, "model", 7);
 		const items = [{
 			value: "last",
-			label: "Последнее изменение"
+			label: t("Последнее изменение")
 		}, {
 			value: "session",
-			label: "С момента открытия"
+			label: t("С момента открытия")
 		}];
 		var div = root_3$4();
 		var node = child(div);
@@ -19705,22 +20235,27 @@
 				children: ($$anchor, $$slotProps) => {
 					var fragment = root_2$5();
 					var node_1 = first_child(fragment);
-					component(node_1, () => Select_trigger, ($$anchor, Select_Trigger) => {
-						Select_Trigger($$anchor, {
-							class: "period-select",
-							"aria-label": "Период замеров",
-							children: ($$anchor, $$slotProps) => {
-								var fragment_1 = root$7();
-								var node_2 = first_child(fragment_1);
-								component(node_2, () => Select_value, ($$anchor, Select_Value) => {
-									Select_Value($$anchor, {});
-								});
-								Chevron_down(sibling(node_2), { size: 12 });
-								append($$anchor, fragment_1);
-							},
-							$$slots: { default: true }
+					{
+						let $0 = /* @__PURE__ */ user_derived(() => t("Период замеров"));
+						component(node_1, () => Select_trigger, ($$anchor, Select_Trigger) => {
+							Select_Trigger($$anchor, {
+								class: "period-select",
+								get "aria-label"() {
+									return get$2($0);
+								},
+								children: ($$anchor, $$slotProps) => {
+									var fragment_1 = root$7();
+									var node_2 = first_child(fragment_1);
+									component(node_2, () => Select_value, ($$anchor, Select_Value) => {
+										Select_Value($$anchor, {});
+									});
+									Chevron_down(sibling(node_2), { size: 12 });
+									append($$anchor, fragment_1);
+								},
+								$$slots: { default: true }
+							});
 						});
-					});
+					}
 					component(sibling(node_1, 2), () => Portal, ($$anchor, Select_Portal) => {
 						Select_Portal($$anchor, {
 							children: ($$anchor, $$slotProps) => {
@@ -19791,9 +20326,13 @@
 				$$slots: { default: true }
 			});
 		});
-		var text_1 = only_child(sibling(node, 2), true);
+		var time = sibling(node, 2);
+		var text_1 = only_child(time, true);
 		reset(div);
-		template_effect(() => set_text(text_1, model().updated));
+		template_effect(($0) => {
+			set_attribute(time, "title", $0);
+			set_text(text_1, model().updated);
+		}, [() => t("Последнее обновление результатов")]);
 		append($$anchor, div);
 		pop();
 	}
@@ -19818,7 +20357,7 @@
 		]
 	]]);
 	function PanelFooter($$anchor) {
-		const version = "0.3.19";
+		const version = "0.3.20";
 		var footer = root$6();
 		var text = only_child(child(footer));
 		next$1();
@@ -19864,8 +20403,8 @@
 		let value = prop($$props, "value", 15, "all");
 		const items = [{
 			value: "all",
-			label: "Все типы вычислений",
-			shortLabel: "Все типы"
+			label: t("Все типы вычислений"),
+			shortLabel: t("Все типы")
 		}, ...calculationTypes.map((type) => ({
 			...type,
 			value: type.id
@@ -19888,38 +20427,43 @@
 				children: ($$anchor, $$slotProps) => {
 					var fragment_1 = root_4$3();
 					var node_1 = first_child(fragment_1);
-					component(node_1, () => Select_trigger, ($$anchor, Select_Trigger) => {
-						Select_Trigger($$anchor, {
-							class: "type-select",
-							"aria-label": "Тип вычислений",
-							get title() {
-								return get$2(selected).label;
-							},
-							children: ($$anchor, $$slotProps) => {
-								var fragment_2 = root_1$4();
-								var node_2 = first_child(fragment_2);
-								var consequent = ($$anchor) => {
-									var span = root$5();
-									let styles;
-									template_effect(() => styles = set_style(span, "", styles, { background: get$2(selected).color }));
-									append($$anchor, span);
-								};
-								var alternate = ($$anchor) => {
-									List_filter($$anchor, { size: 13 });
-								};
-								if_block(node_2, ($$render) => {
-									if (get$2(selected).color) $$render(consequent);
-									else $$render(alternate, -1);
-								});
-								var span_1 = sibling(node_2, 2);
-								var text = only_child(span_1, true);
-								Chevron_down(sibling(span_1), { size: 12 });
-								template_effect(() => set_text(text, get$2(selected).shortLabel));
-								append($$anchor, fragment_2);
-							},
-							$$slots: { default: true }
+					{
+						let $0 = /* @__PURE__ */ user_derived(() => t("Тип вычислений"));
+						component(node_1, () => Select_trigger, ($$anchor, Select_Trigger) => {
+							Select_Trigger($$anchor, {
+								class: "type-select",
+								get "aria-label"() {
+									return get$2($0);
+								},
+								get title() {
+									return get$2(selected).label;
+								},
+								children: ($$anchor, $$slotProps) => {
+									var fragment_2 = root_1$4();
+									var node_2 = first_child(fragment_2);
+									var consequent = ($$anchor) => {
+										var span = root$5();
+										let styles;
+										template_effect(() => styles = set_style(span, "", styles, { background: get$2(selected).color }));
+										append($$anchor, span);
+									};
+									var alternate = ($$anchor) => {
+										List_filter($$anchor, { size: 13 });
+									};
+									if_block(node_2, ($$render) => {
+										if (get$2(selected).color) $$render(consequent);
+										else $$render(alternate, -1);
+									});
+									var span_1 = sibling(node_2, 2);
+									var text = only_child(span_1, true);
+									Chevron_down(sibling(span_1), { size: 12 });
+									template_effect(() => set_text(text, get$2(selected).shortLabel));
+									append($$anchor, fragment_2);
+								},
+								$$slots: { default: true }
+							});
 						});
-					});
+					}
 					component(sibling(node_1, 2), () => Portal, ($$anchor, Select_Portal) => {
 						Select_Portal($$anchor, {
 							children: ($$anchor, $$slotProps) => {
@@ -20022,7 +20566,7 @@
 					var fragment_1 = root$4();
 					var node_1 = first_child(fragment_1);
 					{
-						let $0 = /* @__PURE__ */ user_derived(() => `О показателе «${$$props.label}»`);
+						let $0 = /* @__PURE__ */ user_derived(() => t("О показателе «{label}»", { label: $$props.label }));
 						component(node_1, () => Popover_trigger, ($$anchor, Popover_Trigger) => {
 							Popover_Trigger($$anchor, {
 								class: "metric-help-trigger",
@@ -20084,7 +20628,7 @@
 			class: "experiment-note",
 			role: "status"
 		},
-		"Читаем связи…"
+		" "
 	]]);
 	var root_1$3 = /* @__PURE__ */ from_tree([[
 		"p",
@@ -20118,7 +20662,7 @@
 	var root_6$2 = /* @__PURE__ */ from_tree([[
 		"p",
 		{ class: "experiment-note" },
-		"Показана часть индекса: достигнут лимит чтения или есть неизвестные записи."
+		" "
 	]]);
 	var root_7$1 = /* @__PURE__ */ from_tree([[
 		"section",
@@ -20141,7 +20685,7 @@
 	var root_8$1 = /* @__PURE__ */ from_tree([[
 		"p",
 		{ class: "experiment-note" },
-		"Часть ссылок недоступна или превышает лимит чтения."
+		" "
 	]]);
 	var root_9$1 = /* @__PURE__ */ from_tree([
 		,
@@ -20152,7 +20696,7 @@
 		[
 			"p",
 			{ class: "experiment-note" },
-			"Только загруженные данные. Отсутствие записи не доказывает отсутствие связи."
+			" "
 		]
 	], 1);
 	var root_10$1 = /* @__PURE__ */ from_tree([[
@@ -20177,7 +20721,7 @@
 		[
 			"p",
 			{ class: "experiment-note" },
-			"Нажмите другую ячейку — связи обновятся здесь. Окно останется открытым."
+			" "
 		],
 		" ",
 		[
@@ -20192,37 +20736,37 @@
 		let groups = /* @__PURE__ */ user_derived(() => [
 			{
 				id: "static",
-				label: "Ссылки в формуле",
+				label: t("Ссылки в формуле"),
 				items: get$2(data)?.static,
-				help: "Диапазоны из нативной модели формулы. Повторы объединены. Это ссылки, а не измерение фактических чтений или времени."
+				help: t("Диапазоны из нативной модели формулы. Повторы объединены. Это ссылки, а не измерение фактических чтений или времени.")
 			},
 			{
 				id: "inputs",
-				label: "Связи расчёта",
+				label: t("Связи расчёта"),
 				items: get$2(data)?.dynamic?.filter((item) => item.type !== "FROM_ARRAY_EXPR_TO_RESULT_RANGE"),
-				help: "Связи, переданные движком: диапазоны, структура листа, форматирование и проверка данных. Тип связи указан рядом."
+				help: t("Связи, переданные движком: диапазоны, структура листа, форматирование и проверка данных. Тип связи указан рядом.")
 			},
 			{
 				id: "outputs",
-				label: "Выход массива",
+				label: t("Выход массива"),
 				items: get$2(data)?.dynamic?.filter((item) => item.type === "FROM_ARRAY_EXPR_TO_RESULT_RANGE"),
-				help: "Диапазон, куда выражение массива выводит результат. Это не входные данные формулы."
+				help: t("Диапазон, куда выражение массива выводит результат. Это не входные данные формулы.")
 			},
 			{
 				id: "reverse",
-				label: "Кто может использовать",
+				label: t("Кто может использовать"),
 				items: get$2(data)?.reverse?.available ? get$2(data).reverse.entries : null,
-				help: "Кандидаты из обратного индекса формул загруженного листа. Диапазон может содержать несколько формул; связь каждой клетки отдельно не проверена. Это не полная карта книги."
+				help: t("Кандидаты из обратного индекса формул загруженного листа. Диапазон может содержать несколько формул; связь каждой клетки отдельно не проверена. Это не полная карта книги.")
 			}
 		]);
 		const names = {
-			FROM_ARRAY_VALUE_TO_ARRAY_EXPRESSION: "Выражение массива",
-			FROM_FORMULA_TO_GRID_STRUCTURE: "Структура листа",
-			FROM_CONDITIONAL_FORMAT_TO_GRID_STRUCTURE: "Форматирование · структура",
-			FROM_DATA_VALIDATION_TO_GRID_STRUCTURE: "Проверка данных · структура",
-			FROM_FORMULA_TO_RANGE: "Диапазон формулы",
-			FROM_CONDITIONAL_FORMAT_TO_RANGE: "Условное форматирование",
-			FROM_DATA_VALIDATION_TO_RANGE: "Проверка данных"
+			FROM_ARRAY_VALUE_TO_ARRAY_EXPRESSION: t("Выражение массива"),
+			FROM_FORMULA_TO_GRID_STRUCTURE: t("Структура листа"),
+			FROM_CONDITIONAL_FORMAT_TO_GRID_STRUCTURE: t("Форматирование · структура"),
+			FROM_DATA_VALIDATION_TO_GRID_STRUCTURE: t("Проверка данных · структура"),
+			FROM_FORMULA_TO_RANGE: t("Диапазон формулы"),
+			FROM_CONDITIONAL_FORMAT_TO_RANGE: t("Условное форматирование"),
+			FROM_DATA_VALIDATION_TO_RANGE: t("Проверка данных")
 		};
 		var div = root_10$1();
 		var div_1 = child(div);
@@ -20230,16 +20774,21 @@
 		var text = only_child(strong, true);
 		var text_1 = only_child(sibling(strong, 2), true);
 		reset(div_1);
-		var div_2 = sibling(div_1, 4);
+		var p = sibling(div_1, 2);
+		var text_2 = only_child(p, true);
+		var div_2 = sibling(p, 2);
 		var node = child(div_2);
 		var consequent = ($$anchor) => {
-			append($$anchor, root$3());
+			var p_1 = root$3();
+			var text_3 = only_child(p_1, true);
+			template_effect(($0) => set_text(text_3, $0), [() => t("Читаем связи…")]);
+			append($$anchor, p_1);
 		};
 		var consequent_1 = ($$anchor) => {
-			var p_1 = root_1$3();
-			var text_2 = only_child(p_1, true);
-			template_effect(() => set_text(text_2, get$2(data).reason ?? "Выберите одну ячейку."));
-			append($$anchor, p_1);
+			var p_2 = root_1$3();
+			var text_4 = only_child(p_2, true);
+			template_effect(($0) => set_text(text_4, $0), [() => get$2(data).reason ?? t("Выберите одну ячейку.")]);
+			append($$anchor, p_2);
 		};
 		var alternate_1 = ($$anchor) => {
 			var fragment = root_9$1();
@@ -20248,7 +20797,7 @@
 				var section = root_7$1();
 				var div_3 = child(section);
 				var span_1 = child(div_3);
-				var text_3 = only_child(span_1);
+				var text_5 = only_child(span_1);
 				MetricHelp(sibling(span_1), {
 					get label() {
 						return get$2(group).label;
@@ -20264,29 +20813,29 @@
 					each(ul, 21, () => get$2(group).items, (item) => item.key, ($$anchor, item) => {
 						var li = root_3$2();
 						var code = child(li);
-						var text_4 = only_child(code);
+						var text_6 = only_child(code);
 						var node_4 = sibling(code);
 						var consequent_2 = ($$anchor) => {
 							var span_2 = root_2$3();
-							var text_5 = only_child(span_2, true);
-							template_effect(() => set_text(text_5, names[get$2(item).type]));
+							var text_7 = only_child(span_2, true);
+							template_effect(() => set_text(text_7, names[get$2(item).type]));
 							append($$anchor, span_2);
 						};
 						if_block(node_4, ($$render) => {
 							if (names[get$2(item).type]) $$render(consequent_2);
 						});
 						reset(li);
-						template_effect(($0) => set_text(text_4, `${$0 ?? ""}!${get$2(item).address ?? ""}`), [() => $$props.model.sheetName(get$2(item).sheetId)]);
+						template_effect(($0) => set_text(text_6, `${$0 ?? ""}!${get$2(item).address ?? ""}`), [() => $$props.model.sheetName(get$2(item).sheetId)]);
 						append($$anchor, li);
 					});
 					reset(ul);
 					append($$anchor, ul);
 				};
 				var alternate = ($$anchor) => {
-					var p_2 = root_5$2();
-					var text_6 = only_child(p_2, true);
-					template_effect(() => set_text(text_6, get$2(group).items === null || get$2(group).items === void 0 ? "Google не предоставил данные." : "В доступных данных нет записей."));
-					append($$anchor, p_2);
+					var p_3 = root_5$2();
+					var text_8 = only_child(p_3, true);
+					template_effect(($0) => set_text(text_8, $0), [() => get$2(group).items === null || get$2(group).items === void 0 ? t("Google не предоставил данные.") : t("В доступных данных нет записей.")]);
+					append($$anchor, p_3);
 				};
 				if_block(node_3, ($$render) => {
 					if (get$2(group).items?.length) $$render(consequent_3);
@@ -20294,7 +20843,10 @@
 				});
 				var node_5 = sibling(node_3, 2);
 				var consequent_4 = ($$anchor) => {
-					append($$anchor, root_6$2());
+					var p_4 = root_6$2();
+					var text_9 = only_child(p_4, true);
+					template_effect(($0) => set_text(text_9, $0), [() => t("Показана часть индекса: достигнут лимит чтения или есть неизвестные записи.")]);
+					append($$anchor, p_4);
 				};
 				if_block(node_5, ($$render) => {
 					if (get$2(group).id === "reverse" && get$2(data).reverse?.partial) $$render(consequent_4);
@@ -20302,18 +20854,22 @@
 				reset(section);
 				template_effect(() => {
 					set_attribute(section, "aria-label", get$2(group).label);
-					set_text(text_3, `${get$2(group).label ?? ""}${get$2(group).items?.length ? ` · ${get$2(group).items.length}` : ""}`);
+					set_text(text_5, `${get$2(group).label ?? ""}${get$2(group).items?.length ? ` · ${get$2(group).items.length}` : ""}`);
 				});
 				append($$anchor, section);
 			});
 			var node_6 = sibling(node_1, 2);
 			var consequent_5 = ($$anchor) => {
-				append($$anchor, root_8$1());
+				var p_5 = root_8$1();
+				var text_10 = only_child(p_5, true);
+				template_effect(($0) => set_text(text_10, $0), [() => t("Часть ссылок недоступна или превышает лимит чтения.")]);
+				append($$anchor, p_5);
 			};
 			if_block(node_6, ($$render) => {
 				if (get$2(data).partial) $$render(consequent_5);
 			});
-			next$1(2);
+			var text_11 = only_child(sibling(node_6, 2), true);
+			template_effect(($0) => set_text(text_11, $0), [() => t("Только загруженные данные. Отсутствие записи не доказывает отсутствие связи.")]);
 			append($$anchor, fragment);
 		};
 		if_block(node, ($$render) => {
@@ -20324,11 +20880,16 @@
 		reset(div_2);
 		reset(div);
 		attach(div, () => () => $$props.model.watchRelations());
-		template_effect(($0) => {
+		template_effect(($0, $1, $2) => {
 			set_text(text, $0);
-			set_text(text_1, $$props.model.isDemo ? "Демо" : "Автообновление");
+			set_text(text_1, $1);
+			set_text(text_2, $2);
 			set_attribute(div_2, "aria-busy", get$2(data)?.status === "loading");
-		}, [() => get$2(data)?.selection ? `${$$props.model.sheetName(get$2(data).selection.sheetId)}!${get$2(data).selection.address}` : "Выбранная ячейка"]);
+		}, [
+			() => get$2(data)?.selection ? `${$$props.model.sheetName(get$2(data).selection.sheetId)}!${get$2(data).selection.address}` : t("Выбранная ячейка"),
+			() => $$props.model.isDemo ? t("Демо") : t("Автообновление"),
+			() => t("Нажмите другую ячейку — связи обновятся здесь. Окно останется открытым.")
+		]);
 		append($$anchor, div);
 		pop();
 	}
@@ -20361,7 +20922,7 @@
 	var root_4$1 = /* @__PURE__ */ from_tree([[
 		"p",
 		{ class: "experiment-note" },
-		"Пока нет снимка поддерживаемого движка. Запустите расчёт."
+		" "
 	]]);
 	var root_5$1 = /* @__PURE__ */ from_tree([[
 		"p",
@@ -20371,13 +20932,17 @@
 		},
 		" "
 	]]);
-	var root_6$1 = /* @__PURE__ */ from_tree([["p", {
-		class: "experiment-note",
-		role: "status"
-	}]]);
+	var root_6$1 = /* @__PURE__ */ from_tree([[
+		"p",
+		{
+			class: "experiment-note",
+			role: "status"
+		},
+		" "
+	]]);
 	var root_7 = /* @__PURE__ */ from_tree([[
 		"span",
-		{ title: "Данные есть не во всех выбранных фазах" },
+		null,
 		"*"
 	]]);
 	var root_8 = /* @__PURE__ */ from_tree([[
@@ -20429,7 +20994,7 @@
 		[
 			"p",
 			{ class: "experiment-note" },
-			"— нет данных · * неполная сумма"
+			" "
 		]
 	], 1);
 	var root_11 = /* @__PURE__ */ from_tree([[
@@ -20461,11 +21026,15 @@
 		{ class: "experiment-note" },
 		" "
 	]]);
-	var root_14 = /* @__PURE__ */ from_tree([["p", { class: "experiment-note" }]]);
+	var root_14 = /* @__PURE__ */ from_tree([[
+		"p",
+		{ class: "experiment-note" },
+		" "
+	]]);
 	var root_15 = /* @__PURE__ */ from_tree([[
 		"p",
 		{ class: "experiment-note" },
-		"Часть записей имеет неизвестный формат."
+		" "
 	]]);
 	var root_16 = /* @__PURE__ */ from_tree([
 		[
@@ -20474,7 +21043,7 @@
 			[
 				"span",
 				null,
-				"Срабатывания функций"
+				" "
 			],
 			,
 		],
@@ -20517,13 +21086,13 @@
 	var root_19 = /* @__PURE__ */ from_tree([[
 		"p",
 		{ class: "experiment-note" },
-		"Показаны первые 1000 ключей журнала."
+		" "
 	]]);
 	var root_20 = /* @__PURE__ */ from_tree([
 		[
 			"p",
 			{ class: "experiment-note" },
-			"Исходные значения · единицы не установлены"
+			" "
 		],
 		" ",
 		,
@@ -20551,13 +21120,13 @@
 		[
 			"button",
 			{ class: "text-button" },
-			"Открыть панель Google"
+			" "
 		]
 	], 1);
 	var root_23 = /* @__PURE__ */ from_tree([[
 		"p",
 		{ class: "experiment-note" },
-		"Доступно в Google Таблицах после обновления скрипта."
+		" "
 	]]);
 	var root_24 = /* @__PURE__ */ from_tree([[
 		"p",
@@ -20567,13 +21136,13 @@
 	var root_25 = /* @__PURE__ */ from_tree([[
 		"p",
 		{ class: "experiment-note" },
-		"Существующих скрытых отладочных кнопок не найдено."
+		" "
 	]]);
 	var root_26 = /* @__PURE__ */ from_tree([
 		[
 			"button",
 			{ class: "text-button" },
-			"Вернуть исходный вид"
+			" "
 		],
 		" ",
 		,
@@ -20591,7 +21160,7 @@
 		[
 			"p",
 			{ class: "experiment-note" },
-			"Показать существующие скрытые кнопки. Это меняет только видимость; команды могут быть не подключены."
+			" "
 		],
 		" ",
 		,
@@ -20599,7 +21168,11 @@
 	var root_29 = /* @__PURE__ */ from_tree([[
 		"div",
 		null,
-		["dt"],
+		[
+			"dt",
+			null,
+			" "
+		],
 		[
 			"dd",
 			null,
@@ -20618,7 +21191,7 @@
 	var root_31 = /* @__PURE__ */ from_tree([[
 		"p",
 		{ class: "experiment-note" },
-		"Google не передал CacheSizes."
+		" "
 	]]);
 	var root_32 = /* @__PURE__ */ from_tree([[
 		"p",
@@ -20644,7 +21217,7 @@
 				[
 					"span",
 					null,
-					"Что это"
+					" "
 				],
 				,
 			],
@@ -20662,7 +21235,7 @@
 			[
 				"summary",
 				null,
-				"Этапы и загрузка",
+				" ",
 				,
 			],
 			" ",
@@ -20675,7 +21248,7 @@
 					[
 						"dt",
 						null,
-						"Сигнал Worker",
+						" ",
 						,
 					],
 					[
@@ -20691,7 +21264,7 @@
 					[
 						"dt",
 						null,
-						"Оценка объёма",
+						" ",
 						,
 					],
 					[
@@ -20707,7 +21280,7 @@
 					[
 						"dt",
 						null,
-						"Получение Wasm",
+						" ",
 						,
 					],
 					[
@@ -20723,7 +21296,7 @@
 					[
 						"dt",
 						null,
-						"Создание Wasm",
+						" ",
 						,
 					],
 					[
@@ -20739,7 +21312,7 @@
 					[
 						"dt",
 						null,
-						"Инициализация",
+						" ",
 						,
 					],
 					[
@@ -20755,7 +21328,7 @@
 					[
 						"dt",
 						null,
-						"Ошибки создания",
+						" ",
 						,
 					],
 					[
@@ -20771,7 +21344,7 @@
 			[
 				"p",
 				{ class: "experiment-note" },
-				"Ожидание и применение результата: отдельные замеры пока недоступны."
+				" "
 			]
 		],
 		" ",
@@ -20799,7 +21372,7 @@
 				"button",
 				{ class: "text-button experiment-back" },
 				,
-				" Основной"
+				" "
 			],
 			" ",
 			[
@@ -20815,12 +21388,12 @@
 		push($$props, true);
 		let tab = /* @__PURE__ */ state("metrics");
 		let phase = /* @__PURE__ */ state("all");
-		const number = (value) => value == null ? "—" : value.toLocaleString("ru-RU", { maximumFractionDigits: 2 });
+		const number = (value) => value == null ? "—" : value.toLocaleString(numberLocale(), { maximumFractionDigits: 2 });
 		let data = /* @__PURE__ */ user_derived(() => $$props.model.experimental);
 		let phases = /* @__PURE__ */ user_derived(() => get$2(data)?.phases ?? []);
 		let items = /* @__PURE__ */ user_derived(() => [{
 			value: "all",
-			label: "Все фазы расчёта"
+			label: t("Все фазы расчёта")
 		}, ...get$2(phases).map((item) => ({
 			value: String(item.index),
 			label: `${item.index + 1} · ${experimentalPhaseName(item.type)}`
@@ -20834,17 +21407,19 @@
 		}))).sort((a, b) => b.count - a.count));
 		let tools = /* @__PURE__ */ user_derived(() => $$props.model.experimentalTools);
 		let signals = /* @__PURE__ */ user_derived(() => $$props.model.experimentalSignals ?? {});
-		let received = /* @__PURE__ */ user_derived(() => get$2(data)?.updatedAt ? new Date(get$2(data).updatedAt).toLocaleTimeString("ru-RU", {
+		const unverified = t("Движок Google обновился и ещё не сверён с проверенным. Счётчики показаны по прежней схеме полей: их смысл мог измениться.");
+		let received = /* @__PURE__ */ user_derived(() => get$2(data)?.updatedAt ? new Date(get$2(data).updatedAt).toLocaleTimeString(numberLocale(), {
 			hour: "2-digit",
 			minute: "2-digit"
 		}) : null);
 		var div = root_36();
 		var div_1 = child(div);
 		var button = child(div_1);
-		Arrow_left(child(button), { size: 13 });
-		next$1();
+		var node = child(button);
+		Arrow_left(node, { size: 13 });
+		var text$2 = sibling(node);
 		reset(button);
-		var text$2 = only_child(sibling(button, 2), true);
+		var text_1 = only_child(sibling(button, 2), true);
 		reset(div_1);
 		component(sibling(div_1, 2), () => Tabs, ($$anchor, Tabs_Root) => {
 			Tabs_Root($$anchor, {
@@ -20858,79 +21433,92 @@
 				children: ($$anchor, $$slotProps) => {
 					var fragment = root_35();
 					var node_2 = first_child(fragment);
-					component(node_2, () => Tabs_list, ($$anchor, Tabs_List) => {
-						Tabs_List($$anchor, {
-							class: "ui-tabs experiment-tabs",
-							"aria-label": "Экспериментальные функции",
-							children: ($$anchor, $$slotProps) => {
-								var fragment_1 = root$2();
-								var node_3 = first_child(fragment_1);
-								component(node_3, () => Tabs_trigger, ($$anchor, Tabs_Trigger) => {
-									Tabs_Trigger($$anchor, {
-										class: "ui-tab",
-										value: "metrics",
-										children: ($$anchor, $$slotProps) => {
-											next$1();
-											append($$anchor, text("Счётчики"));
-										},
-										$$slots: { default: true }
+					{
+						let $0 = /* @__PURE__ */ user_derived(() => t("Экспериментальные функции"));
+						component(node_2, () => Tabs_list, ($$anchor, Tabs_List) => {
+							Tabs_List($$anchor, {
+								class: "ui-tabs experiment-tabs",
+								get "aria-label"() {
+									return get$2($0);
+								},
+								children: ($$anchor, $$slotProps) => {
+									var fragment_1 = root$2();
+									var node_3 = first_child(fragment_1);
+									component(node_3, () => Tabs_trigger, ($$anchor, Tabs_Trigger) => {
+										Tabs_Trigger($$anchor, {
+											class: "ui-tab",
+											value: "metrics",
+											children: ($$anchor, $$slotProps) => {
+												next$1();
+												var text_2 = text();
+												template_effect(($0) => set_text(text_2, $0), [() => t("Счётчики")]);
+												append($$anchor, text_2);
+											},
+											$$slots: { default: true }
+										});
 									});
-								});
-								var node_4 = sibling(node_3, 2);
-								component(node_4, () => Tabs_trigger, ($$anchor, Tabs_Trigger_1) => {
-									Tabs_Trigger_1($$anchor, {
-										class: "ui-tab",
-										value: "functions",
-										children: ($$anchor, $$slotProps) => {
-											next$1();
-											append($$anchor, text("Функции"));
-										},
-										$$slots: { default: true }
+									var node_4 = sibling(node_3, 2);
+									component(node_4, () => Tabs_trigger, ($$anchor, Tabs_Trigger_1) => {
+										Tabs_Trigger_1($$anchor, {
+											class: "ui-tab",
+											value: "functions",
+											children: ($$anchor, $$slotProps) => {
+												next$1();
+												var text_3 = text();
+												template_effect(($0) => set_text(text_3, $0), [() => t("Функции")]);
+												append($$anchor, text_3);
+											},
+											$$slots: { default: true }
+										});
 									});
-								});
-								var node_5 = sibling(node_4, 2);
-								component(node_5, () => Tabs_trigger, ($$anchor, Tabs_Trigger_2) => {
-									Tabs_Trigger_2($$anchor, {
-										class: "ui-tab",
-										value: "relations",
-										children: ($$anchor, $$slotProps) => {
-											next$1();
-											append($$anchor, text("Связи"));
-										},
-										$$slots: { default: true }
+									var node_5 = sibling(node_4, 2);
+									component(node_5, () => Tabs_trigger, ($$anchor, Tabs_Trigger_2) => {
+										Tabs_Trigger_2($$anchor, {
+											class: "ui-tab",
+											value: "relations",
+											children: ($$anchor, $$slotProps) => {
+												next$1();
+												var text_4 = text();
+												template_effect(($0) => set_text(text_4, $0), [() => t("Связи")]);
+												append($$anchor, text_4);
+											},
+											$$slots: { default: true }
+										});
 									});
-								});
-								var node_6 = sibling(node_5, 2);
-								component(node_6, () => Tabs_trigger, ($$anchor, Tabs_Trigger_3) => {
-									Tabs_Trigger_3($$anchor, {
-										class: "ui-tab",
-										value: "tools",
-										children: ($$anchor, $$slotProps) => {
-											next$1();
-											append($$anchor, text("Инструменты"));
-										},
-										$$slots: { default: true }
+									var node_6 = sibling(node_5, 2);
+									component(node_6, () => Tabs_trigger, ($$anchor, Tabs_Trigger_3) => {
+										Tabs_Trigger_3($$anchor, {
+											class: "ui-tab",
+											value: "tools",
+											children: ($$anchor, $$slotProps) => {
+												next$1();
+												var text_5 = text();
+												template_effect(($0) => set_text(text_5, $0), [() => t("Инструменты")]);
+												append($$anchor, text_5);
+											},
+											$$slots: { default: true }
+										});
 									});
-								});
-								SelectionIndicator(sibling(node_6, 2), {
-									selector: "[role=\"tab\"][data-state=\"active\"]",
-									get active() {
-										return get$2(tab);
-									}
-								});
-								append($$anchor, fragment_1);
-							},
-							$$slots: { default: true }
+									SelectionIndicator(sibling(node_6, 2), {
+										selector: "[role=\"tab\"][data-state=\"active\"]",
+										get active() {
+											return get$2(tab);
+										}
+									});
+									append($$anchor, fragment_1);
+								},
+								$$slots: { default: true }
+							});
 						});
-					});
+					}
 					var node_8 = sibling(node_2, 2);
 					component(node_8, () => Tabs_content, ($$anchor, Tabs_Content) => {
 						Tabs_Content($$anchor, {
 							class: "relations-content",
 							value: "relations",
 							children: ($$anchor, $$slotProps) => {
-								var fragment_2 = comment();
-								var node_9 = first_child(fragment_2);
+								var fragment_6 = comment();
+								var node_9 = first_child(fragment_6);
 								var consequent = ($$anchor) => {
 									RelationsPanel($$anchor, { get model() {
 										return $$props.model;
@@ -20939,7 +21527,7 @@
 								if_block(node_9, ($$render) => {
 									if (get$2(tab) === "relations" && $$props.model.panelOpen) $$render(consequent);
 								});
-								append($$anchor, fragment_2);
+								append($$anchor, fragment_6);
 							},
 							$$slots: { default: true }
 						});
@@ -20950,8 +21538,8 @@
 							class: "experiment-content",
 							value: "metrics",
 							children: ($$anchor, $$slotProps) => {
-								var fragment_4 = root_10();
-								var div_2 = first_child(fragment_4);
+								var fragment_8 = root_10();
+								var div_2 = first_child(fragment_8);
 								var node_11 = child(div_2);
 								component(node_11, () => Select, ($$anchor, Select_Root) => {
 									Select_Root($$anchor, {
@@ -20967,46 +21555,51 @@
 											set(phase, $$value, true);
 										},
 										children: ($$anchor, $$slotProps) => {
-											var fragment_5 = root_3$1();
-											var node_12 = first_child(fragment_5);
-											component(node_12, () => Select_trigger, ($$anchor, Select_Trigger) => {
-												Select_Trigger($$anchor, {
-													class: "period-select",
-													"aria-label": "Фаза экспериментальных метрик",
-													children: ($$anchor, $$slotProps) => {
-														next$1();
-														var fragment_6 = root_1$2();
-														var text_5 = first_child(fragment_6, true);
-														Chevron_down(sibling(text_5), { size: 12 });
-														template_effect(() => set_text(text_5, get$2(selected).label));
-														append($$anchor, fragment_6);
-													},
-													$$slots: { default: true }
+											var fragment_9 = root_3$1();
+											var node_12 = first_child(fragment_9);
+											{
+												let $0 = /* @__PURE__ */ user_derived(() => t("Фаза экспериментальных метрик"));
+												component(node_12, () => Select_trigger, ($$anchor, Select_Trigger) => {
+													Select_Trigger($$anchor, {
+														class: "period-select",
+														get "aria-label"() {
+															return get$2($0);
+														},
+														children: ($$anchor, $$slotProps) => {
+															next$1();
+															var fragment_10 = root_1$2();
+															var text_6 = first_child(fragment_10, true);
+															Chevron_down(sibling(text_6), { size: 12 });
+															template_effect(() => set_text(text_6, get$2(selected).label));
+															append($$anchor, fragment_10);
+														},
+														$$slots: { default: true }
+													});
 												});
-											});
+											}
 											component(sibling(node_12, 2), () => Portal, ($$anchor, Select_Portal) => {
 												Select_Portal($$anchor, {
 													children: ($$anchor, $$slotProps) => {
-														var fragment_7 = comment();
-														component(first_child(fragment_7), () => Select_content, ($$anchor, Select_Content) => {
+														var fragment_11 = comment();
+														component(first_child(fragment_11), () => Select_content, ($$anchor, Select_Content) => {
 															Select_Content($$anchor, {
 																class: "ui-select-menu",
 																sideOffset: 6,
 																children: ($$anchor, $$slotProps) => {
-																	var fragment_8 = comment();
-																	component(first_child(fragment_8), () => Select_viewport, ($$anchor, Select_Viewport) => {
+																	var fragment_12 = comment();
+																	component(first_child(fragment_12), () => Select_viewport, ($$anchor, Select_Viewport) => {
 																		Select_Viewport($$anchor, {
 																			children: ($$anchor, $$slotProps) => {
-																				var fragment_9 = comment();
-																				each(first_child(fragment_9), 17, () => get$2(items), (item) => item.value, ($$anchor, item) => {
-																					var fragment_10 = comment();
-																					var node_18 = first_child(fragment_10);
+																				var fragment_13 = comment();
+																				each(first_child(fragment_13), 17, () => get$2(items), (item) => item.value, ($$anchor, item) => {
+																					var fragment_14 = comment();
+																					var node_18 = first_child(fragment_14);
 																					{
 																						const children = ($$anchor, $$arg0) => {
 																							let selected = () => ($$arg0?.()).selected;
-																							var fragment_11 = root_2$2();
-																							var span_1 = first_child(fragment_11);
-																							var text_6 = only_child(span_1, true);
+																							var fragment_15 = root_2$2();
+																							var span_1 = first_child(fragment_15);
+																							var text_7 = only_child(span_1, true);
 																							var node_19 = sibling(span_1);
 																							var consequent_1 = ($$anchor) => {
 																								Check($$anchor, { size: 12 });
@@ -21014,8 +21607,8 @@
 																							if_block(node_19, ($$render) => {
 																								if (selected()) $$render(consequent_1);
 																							});
-																							template_effect(() => set_text(text_6, get$2(item).label));
-																							append($$anchor, fragment_11);
+																							template_effect(() => set_text(text_7, get$2(item).label));
+																							append($$anchor, fragment_15);
 																						};
 																						component(node_18, () => Select_item, ($$anchor, Select_Item) => {
 																							Select_Item($$anchor, {
@@ -21031,36 +21624,48 @@
 																							});
 																						});
 																					}
-																					append($$anchor, fragment_10);
+																					append($$anchor, fragment_14);
 																				});
-																				append($$anchor, fragment_9);
+																				append($$anchor, fragment_13);
 																			},
 																			$$slots: { default: true }
 																		});
 																	});
-																	append($$anchor, fragment_8);
+																	append($$anchor, fragment_12);
 																},
 																$$slots: { default: true }
 															});
 														});
-														append($$anchor, fragment_7);
+														append($$anchor, fragment_11);
 													},
 													$$slots: { default: true }
 												});
 											});
-											append($$anchor, fragment_5);
+											append($$anchor, fragment_9);
 										},
 										$$slots: { default: true }
 									});
 								});
-								MetricHelp(sibling(node_11, 2), {
-									label: "Область метрик",
-									text: "Агрегаты последнего native-снимка, включая зависимые листы. Не показатели выбранной ячейки. Пакеты могут повторять накопленные числа, поэтому здесь нет суммы за сессию. Неполная сумма помечена звёздочкой."
-								});
+								var node_20 = sibling(node_11, 2);
+								{
+									let $0 = /* @__PURE__ */ user_derived(() => t("Область метрик"));
+									let $1 = /* @__PURE__ */ user_derived(() => t("Агрегаты последнего native-снимка, включая зависимые листы. Не показатели выбранной ячейки. Пакеты могут повторять накопленные числа, поэтому здесь нет суммы за сессию. Неполная сумма помечена звёздочкой."));
+									MetricHelp(node_20, {
+										get label() {
+											return get$2($0);
+										},
+										get text() {
+											return get$2($1);
+										}
+									});
+								}
 								reset(div_2);
 								var node_21 = sibling(div_2, 2);
 								var consequent_2 = ($$anchor) => {
-									append($$anchor, root_4$1());
+									var p = root_4$1();
+									var text_8 = only_child(p, true);
+									template_effect(($0) => set_text(text_8, $0), [() => t("Пока нет снимка поддерживаемого движка. Запустите расчёт.")]);
+									append($$anchor, p);
 								};
 								if_block(node_21, ($$render) => {
 									if (!get$2(data)) $$render(consequent_2);
@@ -21068,8 +21673,8 @@
 								var node_22 = sibling(node_21, 2);
 								var consequent_3 = ($$anchor) => {
 									var p_1 = root_5$1();
-									var text_7 = only_child(p_1, true);
-									template_effect(() => set_text(text_7, get$2(data).error));
+									var text_9 = only_child(p_1, true);
+									template_effect(() => set_text(text_9, get$2(data).error));
 									append($$anchor, p_1);
 								};
 								if_block(node_22, ($$render) => {
@@ -21078,26 +21683,28 @@
 								var node_23 = sibling(node_22, 2);
 								var consequent_4 = ($$anchor) => {
 									var p_2 = root_6$1();
-									p_2.textContent = "Движок Google обновился и ещё не сверён с проверенным. Счётчики показаны по прежней схеме полей: их смысл мог измениться.";
+									var text_10 = only_child(p_2, true);
+									template_effect(() => set_text(text_10, unverified));
 									append($$anchor, p_2);
 								};
 								if_block(node_23, ($$render) => {
 									if (get$2(data)?.engineVerified === false) $$render(consequent_4);
 								});
-								each(sibling(node_23, 2), 19, () => metricGroups, (group) => group.id, ($$anchor, group, index) => {
+								var node_24 = sibling(node_23, 2);
+								each(node_24, 19, () => metricGroups, (group) => group.id, ($$anchor, group, index) => {
 									var details = root_9();
 									var summary_1 = child(details);
-									var text_8 = child(summary_1, true);
-									Chevron_down(sibling(text_8), { size: 13 });
+									var text_11 = child(summary_1, true);
+									Chevron_down(sibling(text_11), { size: 13 });
 									reset(summary_1);
 									var dl = sibling(summary_1, 2);
 									each(dl, 21, () => metrics.filter((metric) => metric.group === get$2(group).id), (metric) => metric.id, ($$anchor, metric) => {
 										var div_3 = root_8();
 										var dt = child(div_3);
-										var text_9 = child(dt, true);
-										var node_26 = sibling(text_9);
+										var text_12 = child(dt, true);
+										var node_26 = sibling(text_12);
 										{
-											let $0 = /* @__PURE__ */ user_derived(() => get$2(metric).help + " — означает, что Google не передал безопасное числовое значение. * — сумма только фаз, в которых показатель доступен.");
+											let $0 = /* @__PURE__ */ user_derived(() => get$2(metric).help + " " + t("— означает, что Google не передал безопасное числовое значение. * — сумма только фаз, в которых показатель доступен."));
 											MetricHelp(node_26, {
 												get label() {
 													return get$2(metric).label;
@@ -21109,10 +21716,12 @@
 										}
 										reset(dt);
 										var dd = sibling(dt, 2);
-										var text_10 = child(dd, true);
-										var node_27 = sibling(text_10);
+										var text_13 = child(dd, true);
+										var node_27 = sibling(text_13);
 										var consequent_5 = ($$anchor) => {
-											append($$anchor, root_7());
+											var span_2 = root_7();
+											template_effect(($0) => set_attribute(span_2, "title", $0), [() => t("Данные есть не во всех выбранных фазах")]);
+											append($$anchor, span_2);
 										};
 										if_block(node_27, ($$render) => {
 											if (get$2(summary)[get$2(metric).id].partial) $$render(consequent_5);
@@ -21120,8 +21729,8 @@
 										reset(dd);
 										reset(div_3);
 										template_effect(($0) => {
-											set_text(text_9, get$2(metric).label);
-											set_text(text_10, $0);
+											set_text(text_12, get$2(metric).label);
+											set_text(text_13, $0);
 										}, [() => number(get$2(summary)[get$2(metric).id].value)]);
 										append($$anchor, div_3);
 									});
@@ -21129,12 +21738,13 @@
 									reset(details);
 									template_effect(() => {
 										details.open = get$2(index) < 2;
-										set_text(text_8, get$2(group).label);
+										set_text(text_11, get$2(group).label);
 									});
 									append($$anchor, details);
 								});
-								next$1(2);
-								append($$anchor, fragment_4);
+								var text_14 = only_child(sibling(node_24, 2), true);
+								template_effect(($0) => set_text(text_14, $0), [() => t("— нет данных · * неполная сумма")]);
+								append($$anchor, fragment_8);
 							},
 							$$slots: { default: true }
 						});
@@ -21145,12 +21755,23 @@
 							class: "experiment-content",
 							value: "functions",
 							children: ($$anchor, $$slotProps) => {
-								var fragment_13 = root_16();
-								var div_4 = first_child(fragment_13);
-								MetricHelp(sibling(child(div_4)), {
-									label: "Частоты функций",
-									text: "Количество срабатываний в инструментированных путях движка. Есть служебные имена. Это не полный счётчик операций и не время функции; адресной привязки нет. Сбор зависит от отдельной настройки Google, не только от таймеров."
-								});
+								var fragment_17 = root_16();
+								var div_4 = first_child(fragment_17);
+								var span_3 = child(div_4);
+								var text_15 = only_child(span_3, true);
+								var node_29 = sibling(span_3);
+								{
+									let $0 = /* @__PURE__ */ user_derived(() => t("Частоты функций"));
+									let $1 = /* @__PURE__ */ user_derived(() => t("Количество срабатываний в инструментированных путях движка. Есть служебные имена. Это не полный счётчик операций и не время функции; адресной привязки нет. Сбор зависит от отдельной настройки Google, не только от таймеров."));
+									MetricHelp(node_29, {
+										get label() {
+											return get$2($0);
+										},
+										get text() {
+											return get$2($1);
+										}
+									});
+								}
 								reset(div_4);
 								var node_30 = sibling(div_4, 2);
 								var consequent_6 = ($$anchor) => {
@@ -21159,15 +21780,15 @@
 										var li = root_11();
 										var div_5 = child(li);
 										var code = child(div_5);
-										var text_11 = only_child(code, true);
-										var text_12 = only_child(sibling(code), true);
+										var text_16 = only_child(code, true);
+										var text_17 = only_child(sibling(code), true);
 										reset(div_5);
-										var text_13 = only_child(sibling(div_5), true);
+										var text_18 = only_child(sibling(div_5), true);
 										reset(li);
 										template_effect(($0, $1) => {
-											set_text(text_11, get$2(entry).name);
-											set_text(text_12, $0);
-											set_text(text_13, $1);
+											set_text(text_16, get$2(entry).name);
+											set_text(text_17, $0);
+											set_text(text_18, $1);
 										}, [() => experimentalPhaseName(get$2(entry).type), () => number(get$2(entry).count)]);
 										append($$anchor, li);
 									});
@@ -21175,10 +21796,10 @@
 									append($$anchor, ol);
 								};
 								var alternate = ($$anchor) => {
-									var p_3 = root_13();
-									var text_14 = only_child(p_3);
-									template_effect(($0) => set_text(text_14, `${$0 ?? ""} Настройки движка автоматически не меняются.`), [() => get$2(data)?.functions?.some((group) => group.available) ? "В снимке нет записей частот." : "Google не передал частоты функций."]);
-									append($$anchor, p_3);
+									var p_4 = root_13();
+									var text_19 = only_child(p_4);
+									template_effect(($0, $1) => set_text(text_19, `${$0 ?? ""} ${$1 ?? ""}`), [() => get$2(data)?.functions?.some((group) => group.available) ? t("В снимке нет записей частот.") : t("Google не передал частоты функций."), () => t("Настройки движка автоматически не меняются.")]);
+									append($$anchor, p_4);
 								};
 								if_block(node_30, ($$render) => {
 									if (get$2(functions).length) $$render(consequent_6);
@@ -21186,22 +21807,27 @@
 								});
 								var node_31 = sibling(node_30, 2);
 								var consequent_7 = ($$anchor) => {
-									var p_4 = root_14();
-									p_4.textContent = "Движок Google обновился и ещё не сверён с проверенным. Счётчики показаны по прежней схеме полей: их смысл мог измениться.";
-									append($$anchor, p_4);
+									var p_5 = root_14();
+									var text_20 = only_child(p_5, true);
+									template_effect(() => set_text(text_20, unverified));
+									append($$anchor, p_5);
 								};
 								if_block(node_31, ($$render) => {
 									if (get$2(data)?.engineVerified === false) $$render(consequent_7);
 								});
 								var node_32 = sibling(node_31, 2);
 								var consequent_8 = ($$anchor) => {
-									append($$anchor, root_15());
+									var p_6 = root_15();
+									var text_21 = only_child(p_6, true);
+									template_effect(($0) => set_text(text_21, $0), [() => t("Часть записей имеет неизвестный формат.")]);
+									append($$anchor, p_6);
 								};
 								var d = /* @__PURE__ */ user_derived(() => get$2(data)?.functions?.some((group) => group.malformed));
 								if_block(node_32, ($$render) => {
 									if (get$2(d)) $$render(consequent_8);
 								});
-								append($$anchor, fragment_13);
+								template_effect(($0) => set_text(text_15, $0), [() => t("Срабатывания функций")]);
+								append($$anchor, fragment_17);
 							},
 							$$slots: { default: true }
 						});
@@ -21211,101 +21837,167 @@
 							class: "experiment-content",
 							value: "tools",
 							children: ($$anchor, $$slotProps) => {
-								var fragment_14 = root_34();
-								var details_1 = first_child(fragment_14);
+								var fragment_18 = root_34();
+								var details_1 = first_child(fragment_18);
 								var summary_2 = child(details_1);
-								Chevron_down(sibling(child(summary_2)), { size: 13 });
+								var text_22 = child(summary_2, true);
+								Chevron_down(sibling(text_22), { size: 13 });
 								reset(summary_2);
 								var dl_1 = sibling(summary_2, 2);
 								var div_6 = child(dl_1);
 								var dt_1 = child(div_6);
-								MetricHelp(sibling(child(dt_1)), {
-									label: "Прогресс",
-									text: "Последний полученный сигнал расчёта. Процент относится к очереди Google, а не только к выбранному листу. Он не доказывает завершение отрисовки или сохранения."
-								});
+								var text_23 = child(dt_1, true);
+								var node_35 = sibling(text_23);
+								{
+									let $0 = /* @__PURE__ */ user_derived(() => t("Прогресс"));
+									let $1 = /* @__PURE__ */ user_derived(() => t("Последний полученный сигнал расчёта. Процент относится к очереди Google, а не только к выбранному листу. Он не доказывает завершение отрисовки или сохранения."));
+									MetricHelp(node_35, {
+										get label() {
+											return get$2($0);
+										},
+										get text() {
+											return get$2($1);
+										}
+									});
+								}
 								reset(dt_1);
-								var text_15 = only_child(sibling(dt_1), true);
+								var text_24 = only_child(sibling(dt_1), true);
 								reset(div_6);
 								var div_7 = sibling(div_6, 2);
 								var dt_2 = child(div_7);
-								MetricHelp(sibling(child(dt_2)), {
-									label: "Оценка объёма",
-									text: "numDirtyCellsEstimate из сигнала прогресса. Это оценка предстоящей работы, не точное число операций."
-								});
+								var text_25 = child(dt_2, true);
+								var node_36 = sibling(text_25);
+								{
+									let $0 = /* @__PURE__ */ user_derived(() => t("Оценка объёма"));
+									let $1 = /* @__PURE__ */ user_derived(() => t("numDirtyCellsEstimate из сигнала прогресса. Это оценка предстоящей работы, не точное число операций."));
+									MetricHelp(node_36, {
+										get label() {
+											return get$2($0);
+										},
+										get text() {
+											return get$2($1);
+										}
+									});
+								}
 								reset(dt_2);
-								var text_16 = only_child(sibling(dt_2), true);
+								var text_26 = only_child(sibling(dt_2), true);
 								reset(div_7);
 								var div_8 = sibling(div_7, 2);
 								var dt_3 = child(div_8);
-								MetricHelp(sibling(child(dt_3)), {
-									label: "Получение Wasm",
-									text: "Разность нативных отметок начала и завершения получения Wasm. Производная длительность старта, не время формул."
-								});
+								var text_27 = child(dt_3, true);
+								var node_37 = sibling(text_27);
+								{
+									let $0 = /* @__PURE__ */ user_derived(() => t("Получение Wasm"));
+									let $1 = /* @__PURE__ */ user_derived(() => t("Разность нативных отметок начала и завершения получения Wasm. Производная длительность старта, не время формул."));
+									MetricHelp(node_37, {
+										get label() {
+											return get$2($0);
+										},
+										get text() {
+											return get$2($1);
+										}
+									});
+								}
 								reset(dt_3);
-								var text_17 = only_child(sibling(dt_3), true);
+								var text_28 = only_child(sibling(dt_3), true);
 								reset(div_8);
 								var div_9 = sibling(div_8, 2);
 								var dt_4 = child(div_9);
-								MetricHelp(sibling(child(dt_4)), {
-									label: "Создание Wasm",
-									text: "Нативная длительность instantiateStreaming при запуске движка. Если подключились поздно, данных может не быть."
-								});
+								var text_29 = child(dt_4, true);
+								var node_38 = sibling(text_29);
+								{
+									let $0 = /* @__PURE__ */ user_derived(() => t("Создание Wasm"));
+									let $1 = /* @__PURE__ */ user_derived(() => t("Нативная длительность instantiateStreaming при запуске движка. Если подключились поздно, данных может не быть."));
+									MetricHelp(node_38, {
+										get label() {
+											return get$2($0);
+										},
+										get text() {
+											return get$2($1);
+										}
+									});
+								}
 								reset(dt_4);
-								var text_18 = only_child(sibling(dt_4), true);
+								var text_30 = only_child(sibling(dt_4), true);
 								reset(div_9);
 								var div_10 = sibling(div_9, 2);
 								var dt_5 = child(div_10);
-								MetricHelp(sibling(child(dt_5)), {
-									label: "Инициализация",
-									text: "Нативная длительность начальной инициализации Worker. Не полное время загрузки таблицы."
-								});
+								var text_31 = child(dt_5, true);
+								var node_39 = sibling(text_31);
+								{
+									let $0 = /* @__PURE__ */ user_derived(() => t("Инициализация"));
+									let $1 = /* @__PURE__ */ user_derived(() => t("Нативная длительность начальной инициализации Worker. Не полное время загрузки таблицы."));
+									MetricHelp(node_39, {
+										get label() {
+											return get$2($0);
+										},
+										get text() {
+											return get$2($1);
+										}
+									});
+								}
 								reset(dt_5);
-								var text_19 = only_child(sibling(dt_5), true);
+								var text_32 = only_child(sibling(dt_5), true);
 								reset(div_10);
 								var div_11 = sibling(div_10, 2);
 								var dt_6 = child(div_11);
-								MetricHelp(sibling(child(dt_6)), {
-									label: "Ошибки создания",
-									text: "Число неудачных попыток инстанцирования Wasm при старте. Отсутствие поля не равно нулю."
-								});
+								var text_33 = child(dt_6, true);
+								var node_40 = sibling(text_33);
+								{
+									let $0 = /* @__PURE__ */ user_derived(() => t("Ошибки создания"));
+									let $1 = /* @__PURE__ */ user_derived(() => t("Число неудачных попыток инстанцирования Wasm при старте. Отсутствие поля не равно нулю."));
+									MetricHelp(node_40, {
+										get label() {
+											return get$2($0);
+										},
+										get text() {
+											return get$2($1);
+										}
+									});
+								}
 								reset(dt_6);
-								var text_20 = only_child(sibling(dt_6), true);
+								var text_34 = only_child(sibling(dt_6), true);
 								reset(div_11);
 								each(sibling(div_11, 2), 17, () => get$2(phases), (item) => item.index, ($$anchor, item) => {
 									var div_12 = root_17();
 									var dt_7 = child(div_12);
-									var text_21 = child(dt_7, true);
-									var node_42 = sibling(text_21);
+									var text_35 = child(dt_7, true);
+									var node_42 = sibling(text_35);
 									{
 										let $0 = /* @__PURE__ */ user_derived(() => experimentalPhaseName(get$2(item).type));
+										let $1 = /* @__PURE__ */ user_derived(() => t("Нативное время фазы последнего снимка. Ожидание очереди и применение результатов сюда автоматически не добавляются."));
 										MetricHelp(node_42, {
 											get label() {
 												return get$2($0);
 											},
-											text: "Нативное время фазы последнего снимка. Ожидание очереди и применение результатов сюда автоматически не добавляются."
+											get text() {
+												return get$2($1);
+											}
 										});
 									}
 									reset(dt_7);
-									var text_22 = only_child(sibling(dt_7), true);
+									var text_36 = only_child(sibling(dt_7), true);
 									reset(div_12);
 									template_effect(($0, $1) => {
-										set_text(text_21, $0);
-										set_text(text_22, $1);
+										set_text(text_35, $0);
+										set_text(text_36, $1);
 									}, [() => experimentalPhaseName(get$2(item).type), () => formatTime(get$2(item).elapsedMs)]);
 									append($$anchor, div_12);
 								});
 								reset(dl_1);
-								next$1(2);
+								var text_37 = only_child(sibling(dl_1, 2), true);
 								reset(details_1);
 								each(sibling(details_1, 2), 17, () => experimentalTools, (tool) => tool.id, ($$anchor, tool) => {
 									var details_2 = root_33();
 									var summary_3 = child(details_2);
-									var text_23 = child(summary_3, true);
-									Chevron_down(sibling(text_23), { size: 13 });
+									var text_38 = child(summary_3, true);
+									Chevron_down(sibling(text_38), { size: 13 });
 									reset(summary_3);
 									var div_13 = sibling(summary_3, 2);
 									var div_14 = child(div_13);
-									MetricHelp(sibling(child(div_14)), {
+									var span_5 = child(div_14);
+									var text_39 = only_child(span_5, true);
+									MetricHelp(sibling(span_5), {
 										get label() {
 											return get$2(tool).label;
 										},
@@ -21316,125 +22008,154 @@
 									reset(div_14);
 									var node_46 = sibling(div_14, 2);
 									var consequent_11 = ($$anchor) => {
-										var fragment_15 = comment();
-										var node_47 = first_child(fragment_15);
+										var fragment_19 = comment();
+										var node_47 = first_child(fragment_19);
 										var consequent_10 = ($$anchor) => {
-											var fragment_16 = root_20();
-											var node_48 = sibling(first_child(fragment_16), 2);
+											var fragment_20 = root_20();
+											var p_8 = first_child(fragment_20);
+											var text_40 = only_child(p_8, true);
+											var node_48 = sibling(p_8, 2);
 											each(node_48, 17, () => get$2(tools).latency.entries, (entry) => entry.name, ($$anchor, entry) => {
 												var div_15 = root_18();
 												var code_1 = child(div_15);
-												var text_24 = only_child(code_1, true);
-												var text_25 = only_child(sibling(code_1), true);
+												var text_41 = only_child(code_1, true);
+												var text_42 = only_child(sibling(code_1), true);
 												reset(div_15);
 												template_effect(($0) => {
-													set_text(text_24, get$2(entry).name);
-													set_text(text_25, $0);
+													set_text(text_41, get$2(entry).name);
+													set_text(text_42, $0);
 												}, [() => get$2(entry).values.map((value) => String(value)).join(" · ")]);
 												append($$anchor, div_15);
 											});
 											var node_49 = sibling(node_48, 2);
 											var consequent_9 = ($$anchor) => {
-												append($$anchor, root_19());
+												var p_9 = root_19();
+												var text_43 = only_child(p_9, true);
+												template_effect(($0) => set_text(text_43, $0), [() => t("Показаны первые 1000 ключей журнала.")]);
+												append($$anchor, p_9);
 											};
 											if_block(node_49, ($$render) => {
 												if (get$2(tools).latency.truncated) $$render(consequent_9);
 											});
-											append($$anchor, fragment_16);
+											template_effect(($0) => set_text(text_40, $0), [() => t("Исходные значения · единицы не установлены")]);
+											append($$anchor, fragment_20);
 										};
 										var alternate_1 = ($$anchor) => {
-											var p_7 = root_21();
-											var text_26 = only_child(p_7, true);
-											template_effect(() => set_text(text_26, get$2(tools)?.latency?.reason ?? "Журнал недоступен"));
-											append($$anchor, p_7);
+											var p_10 = root_21();
+											var text_44 = only_child(p_10, true);
+											template_effect(($0) => set_text(text_44, $0), [() => get$2(tools)?.latency?.reason ?? t("Журнал недоступен")]);
+											append($$anchor, p_10);
 										};
 										if_block(node_47, ($$render) => {
 											if (get$2(tools)?.latency?.entries?.length) $$render(consequent_10);
 											else $$render(alternate_1, -1);
 										});
-										append($$anchor, fragment_15);
+										append($$anchor, fragment_19);
 									};
 									var consequent_12 = ($$anchor) => {
-										var fragment_17 = root_22();
-										var p_8 = first_child(fragment_17);
-										var text_27 = only_child(p_8, true);
-										var p_9 = sibling(p_8, 2);
-										var text_28 = only_child(p_9, true);
-										var button_1 = sibling(p_9, 2);
-										template_effect(($0) => {
-											set_text(text_27, $0);
-											set_text(text_28, get$2(tools)?.modelSize?.reason ?? "Из кэша панели Google · время получения неизвестно");
-										}, [() => get$2(tools)?.modelSize?.bytes == null ? "—" : number(get$2(tools).modelSize.bytes) + " Б"]);
+										var fragment_21 = root_22();
+										var p_11 = first_child(fragment_21);
+										var text_45 = only_child(p_11, true);
+										var p_12 = sibling(p_11, 2);
+										var text_46 = only_child(p_12, true);
+										var button_1 = sibling(p_12, 2);
+										var text_47 = only_child(button_1, true);
+										template_effect(($0, $1, $2) => {
+											set_text(text_45, $0);
+											set_text(text_46, $1);
+											set_text(text_47, $2);
+										}, [
+											() => get$2(tools)?.modelSize?.bytes == null ? "—" : t("{bytes} Б", { bytes: number(get$2(tools).modelSize.bytes) }),
+											() => get$2(tools)?.modelSize?.reason ?? t("Из кэша панели Google · время получения неизвестно"),
+											() => t("Открыть панель Google")
+										]);
 										delegated("click", button_1, () => $$props.model.openGoogle());
-										append($$anchor, fragment_17);
+										append($$anchor, fragment_21);
 									};
 									var consequent_15 = ($$anchor) => {
-										var fragment_18 = root_28();
-										var node_50 = sibling(first_child(fragment_18), 2);
+										var fragment_22 = root_28();
+										var p_13 = first_child(fragment_22);
+										var text_48 = only_child(p_13, true);
+										var node_50 = sibling(p_13, 2);
 										var consequent_13 = ($$anchor) => {
-											append($$anchor, root_23());
+											var p_14 = root_23();
+											var text_49 = only_child(p_14, true);
+											template_effect(($0) => set_text(text_49, $0), [() => t("Доступно в Google Таблицах после обновления скрипта.")]);
+											append($$anchor, p_14);
 										};
 										var alternate_2 = ($$anchor) => {
-											var fragment_19 = root_27();
-											var button_2 = first_child(fragment_19);
-											var text_29 = only_child(button_2, true);
+											var fragment_23 = root_27();
+											var button_2 = first_child(fragment_23);
+											var text_50 = only_child(button_2, true);
 											var node_51 = sibling(button_2, 2);
 											var consequent_14 = ($$anchor) => {
-												var fragment_20 = root_26();
-												var button_3 = first_child(fragment_20);
+												var fragment_24 = root_26();
+												var button_3 = first_child(fragment_24);
+												var text_51 = only_child(button_3, true);
 												each(sibling(button_3, 2), 17, () => $$props.model.debugControls.controls, (control) => control.id, ($$anchor, control) => {
-													var p_11 = root_24();
-													var text_30 = only_child(p_11);
-													template_effect(() => set_text(text_30, `${get$2(control).label ?? ""} · ${get$2(control).visible ? "показано" : "скрыто родительским элементом"}`));
-													append($$anchor, p_11);
+													var p_15 = root_24();
+													var text_52 = only_child(p_15);
+													template_effect(($0) => set_text(text_52, `${get$2(control).label ?? ""} · ${$0 ?? ""}`), [() => get$2(control).visible ? t("показано") : t("скрыто родительским элементом")]);
+													append($$anchor, p_15);
 												}, ($$anchor) => {
-													append($$anchor, root_25());
+													var p_16 = root_25();
+													var text_53 = only_child(p_16, true);
+													template_effect(($0) => set_text(text_53, $0), [() => t("Существующих скрытых отладочных кнопок не найдено.")]);
+													append($$anchor, p_16);
 												});
+												template_effect(($0) => set_text(text_51, $0), [() => t("Вернуть исходный вид")]);
 												delegated("click", button_3, () => $$props.model.revealDebugControls(false));
-												append($$anchor, fragment_20);
+												append($$anchor, fragment_24);
 											};
 											if_block(node_51, ($$render) => {
 												if ($$props.model.debugControls.enabled) $$render(consequent_14);
 											});
-											template_effect(() => set_text(text_29, $$props.model.debugControls.enabled ? "Найти ещё" : "Показать скрытые кнопки"));
+											template_effect(($0) => set_text(text_50, $0), [() => $$props.model.debugControls.enabled ? t("Найти ещё") : t("Показать скрытые кнопки")]);
 											delegated("click", button_2, () => $$props.model.revealDebugControls(true));
-											append($$anchor, fragment_19);
+											append($$anchor, fragment_23);
 										};
 										if_block(node_50, ($$render) => {
 											if ($$props.model.isDemo) $$render(consequent_13);
 											else $$render(alternate_2, -1);
 										});
-										append($$anchor, fragment_18);
+										template_effect(($0) => set_text(text_48, $0), [() => t("Показать существующие скрытые кнопки. Это меняет только видимость; команды могут быть не подключены.")]);
+										append($$anchor, fragment_22);
 									};
 									var consequent_16 = ($$anchor) => {
-										var fragment_21 = comment();
-										each(first_child(fragment_21), 17, () => get$2(phases).filter((item) => item.cache), (item) => item.index, ($$anchor, item) => {
-											var fragment_22 = root_30();
-											var p_13 = first_child(fragment_22);
-											var text_31 = only_child(p_13);
-											var dl_2 = sibling(p_13, 2);
+										var fragment_25 = comment();
+										each(first_child(fragment_25), 17, () => get$2(phases).filter((item) => item.cache), (item) => item.index, ($$anchor, item) => {
+											var fragment_26 = root_30();
+											var p_17 = first_child(fragment_26);
+											var text_54 = only_child(p_17);
+											var dl_2 = sibling(p_17, 2);
 											each(dl_2, 21, () => get$2(item).cache, index$1, ($$anchor, value, index) => {
 												var div_16 = root_29();
 												var dt_8 = child(div_16);
-												dt_8.textContent = `Поле ${index + 1}`;
-												var text_32 = only_child(sibling(dt_8), true);
+												var text_55 = only_child(dt_8, true);
+												var text_56 = only_child(sibling(dt_8), true);
 												reset(div_16);
-												template_effect(($0) => set_text(text_32, $0), [() => Array.isArray(get$2(value)) ? get$2(value).map(number).join(" · ") || "Пустой список" : number(get$2(value))]);
+												template_effect(($0, $1) => {
+													set_text(text_55, $0);
+													set_text(text_56, $1);
+												}, [() => t("Поле {n}", { n: index + 1 }), () => Array.isArray(get$2(value)) ? get$2(value).map(number).join(" · ") || t("Пустой список") : number(get$2(value))]);
 												append($$anchor, div_16);
 											});
 											reset(dl_2);
-											template_effect(($0) => set_text(text_31, `${$0 ?? ""} · единицы неизвестны`), [() => experimentalPhaseName(get$2(item).type)]);
-											append($$anchor, fragment_22);
+											template_effect(($0, $1) => set_text(text_54, `${$0 ?? ""} · ${$1 ?? ""}`), [() => experimentalPhaseName(get$2(item).type), () => t("единицы неизвестны")]);
+											append($$anchor, fragment_26);
 										}, ($$anchor) => {
-											append($$anchor, root_31());
+											var p_18 = root_31();
+											var text_57 = only_child(p_18, true);
+											template_effect(($0) => set_text(text_57, $0), [() => t("Google не передал CacheSizes.")]);
+											append($$anchor, p_18);
 										});
-										append($$anchor, fragment_21);
+										append($$anchor, fragment_25);
 									};
 									var alternate_3 = ($$anchor) => {
-										var p_15 = root_32();
-										var text_33 = only_child(p_15, true);
-										template_effect(() => set_text(text_33, get$2(tool).reason));
-										append($$anchor, p_15);
+										var p_19 = root_32();
+										var text_58 = only_child(p_19, true);
+										template_effect(() => set_text(text_58, get$2(tool).reason));
+										append($$anchor, p_19);
 									};
 									if_block(node_46, ($$render) => {
 										if (get$2(tool).id === "latency") $$render(consequent_11);
@@ -21445,25 +22166,44 @@
 									});
 									reset(div_13);
 									reset(details_2);
-									template_effect(() => set_text(text_23, get$2(tool).label));
+									template_effect(($0) => {
+										set_text(text_38, get$2(tool).label);
+										set_text(text_39, $0);
+									}, [() => t("Что это")]);
 									append($$anchor, details_2);
 								});
-								template_effect(($0, $1, $2, $3, $4, $5) => {
-									set_text(text_15, $0);
-									set_text(text_16, $1);
-									set_text(text_17, $2);
-									set_text(text_18, $3);
-									set_text(text_19, $4);
-									set_text(text_20, $5);
+								template_effect(($0, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) => {
+									set_text(text_22, $0);
+									set_text(text_23, $1);
+									set_text(text_24, $2);
+									set_text(text_25, $3);
+									set_text(text_26, $4);
+									set_text(text_27, $5);
+									set_text(text_28, $6);
+									set_text(text_29, $7);
+									set_text(text_30, $8);
+									set_text(text_31, $9);
+									set_text(text_32, $10);
+									set_text(text_33, $11);
+									set_text(text_34, $12);
+									set_text(text_37, $13);
 								}, [
+									() => t("Этапы и загрузка"),
+									() => t("Сигнал Worker"),
 									() => get$2(signals).progress?.percent == null ? "—" : number(get$2(signals).progress.percent) + "%",
+									() => t("Оценка объёма"),
 									() => number(get$2(signals).progress?.dirtyEstimate),
+									() => t("Получение Wasm"),
 									() => formatTime(get$2(signals).startup?.fetchMs),
+									() => t("Создание Wasm"),
 									() => formatTime(get$2(signals).startup?.instantiateMs),
+									() => t("Инициализация"),
 									() => formatTime(get$2(signals).startup?.initializeMs),
-									() => number(get$2(signals).startup?.failures)
+									() => t("Ошибки создания"),
+									() => number(get$2(signals).startup?.failures),
+									() => t("Ожидание и применение результата: отдельные замеры пока недоступны.")
 								]);
-								append($$anchor, fragment_14);
+								append($$anchor, fragment_18);
 							},
 							$$slots: { default: true }
 						});
@@ -21474,7 +22214,10 @@
 			});
 		});
 		reset(div);
-		template_effect(() => set_text(text$2, $$props.model.isDemo ? "Демо-данные" : get$2(tab) === "relations" ? "По выбранной ячейке" : `Последний снимок${get$2(received) ? " · " + get$2(received) : ""}`));
+		template_effect(($0, $1) => {
+			set_text(text$2, ` ${$0 ?? ""}`);
+			set_text(text_1, $1);
+		}, [() => t("Основной"), () => $$props.model.isDemo ? t("Демо-данные") : get$2(tab) === "relations" ? t("По выбранной ячейке") : `${t("Последний снимок")}${get$2(received) ? " · " + get$2(received) : ""}`]);
 		delegated("click", button, () => $$props.model.setExperimental(false));
 		append($$anchor, div);
 		pop();
@@ -21493,7 +22236,7 @@
 	var root_1$1 = /* @__PURE__ */ from_tree([[
 		"p",
 		{ class: "empty-cells" },
-		"Запустите расчёт, чтобы увидеть время."
+		" "
 	]]);
 	var root_2$1 = /* @__PURE__ */ from_tree([
 		,
@@ -21528,10 +22271,7 @@
 	], 1);
 	var root_6 = /* @__PURE__ */ from_tree([[
 		"section",
-		{
-			class: "scope-panel overview",
-			"aria-label": "Эффективность таблицы"
-		},
+		{ class: "scope-panel overview" },
 		,
 		" ",
 		,
@@ -21573,47 +22313,56 @@
 						var fragment_2 = root_4();
 						var div = first_child(fragment_2);
 						var node_4 = child(div);
-						component(node_4, () => Tabs_list, ($$anchor, Tabs_List) => {
-							Tabs_List($$anchor, {
-								class: "ui-tabs",
-								"aria-label": "Результаты",
-								children: ($$anchor, $$slotProps) => {
-									var fragment_3 = root$1();
-									var node_5 = first_child(fragment_3);
-									component(node_5, () => Tabs_trigger, ($$anchor, Tabs_Trigger) => {
-										Tabs_Trigger($$anchor, {
-											class: "ui-tab",
-											value: "result",
-											children: ($$anchor, $$slotProps) => {
-												next$1();
-												append($$anchor, text("Результат"));
-											},
-											$$slots: { default: true }
+						{
+							let $0 = /* @__PURE__ */ user_derived(() => t("Результаты"));
+							component(node_4, () => Tabs_list, ($$anchor, Tabs_List) => {
+								Tabs_List($$anchor, {
+									class: "ui-tabs",
+									get "aria-label"() {
+										return get$2($0);
+									},
+									children: ($$anchor, $$slotProps) => {
+										var fragment_3 = root$1();
+										var node_5 = first_child(fragment_3);
+										component(node_5, () => Tabs_trigger, ($$anchor, Tabs_Trigger) => {
+											Tabs_Trigger($$anchor, {
+												class: "ui-tab",
+												value: "result",
+												children: ($$anchor, $$slotProps) => {
+													next$1();
+													var text$1 = text();
+													template_effect(($0) => set_text(text$1, $0), [() => t("Результат")]);
+													append($$anchor, text$1);
+												},
+												$$slots: { default: true }
+											});
 										});
-									});
-									var node_6 = sibling(node_5, 2);
-									component(node_6, () => Tabs_trigger, ($$anchor, Tabs_Trigger_1) => {
-										Tabs_Trigger_1($$anchor, {
-											class: "ui-tab",
-											value: "cells",
-											children: ($$anchor, $$slotProps) => {
-												next$1();
-												append($$anchor, text("Эффективность"));
-											},
-											$$slots: { default: true }
+										var node_6 = sibling(node_5, 2);
+										component(node_6, () => Tabs_trigger, ($$anchor, Tabs_Trigger_1) => {
+											Tabs_Trigger_1($$anchor, {
+												class: "ui-tab",
+												value: "cells",
+												children: ($$anchor, $$slotProps) => {
+													next$1();
+													var text_1 = text();
+													template_effect(($0) => set_text(text_1, $0), [() => t("Эффективность")]);
+													append($$anchor, text_1);
+												},
+												$$slots: { default: true }
+											});
 										});
-									});
-									SelectionIndicator(sibling(node_6, 2), {
-										selector: "[role=\"tab\"][data-state=\"active\"]",
-										get active() {
-											return get$2(tab);
-										}
-									});
-									append($$anchor, fragment_3);
-								},
-								$$slots: { default: true }
+										SelectionIndicator(sibling(node_6, 2), {
+											selector: "[role=\"tab\"][data-state=\"active\"]",
+											get active() {
+												return get$2(tab);
+											}
+										});
+										append($$anchor, fragment_3);
+									},
+									$$slots: { default: true }
+								});
 							});
-						});
+						}
 						var node_8 = sibling(node_4, 2);
 						var consequent_1 = ($$anchor) => {
 							TypeFilter($$anchor, {
@@ -21635,15 +22384,18 @@
 								value: "result",
 								class: "panel-content result-content",
 								children: ($$anchor, $$slotProps) => {
-									var fragment_5 = root_2$1();
-									var node_10 = first_child(fragment_5);
+									var fragment_7 = root_2$1();
+									var node_10 = first_child(fragment_7);
 									var consequent_2 = ($$anchor) => {
 										PhaseChart($$anchor, { get phases() {
 											return $$props.model.phases;
 										} });
 									};
 									var alternate = ($$anchor) => {
-										append($$anchor, root_1$1());
+										var p = root_1$1();
+										var text_2 = only_child(p, true);
+										template_effect(($0) => set_text(text_2, $0), [() => t("Запустите расчёт, чтобы увидеть время.")]);
+										append($$anchor, p);
 									};
 									if_block(node_10, ($$render) => {
 										if ($$props.model.hasResults !== false) $$render(consequent_2);
@@ -21657,7 +22409,7 @@
 											return $$props.model.cellCapacity.limit;
 										}
 									});
-									append($$anchor, fragment_5);
+									append($$anchor, fragment_7);
 								},
 								$$slots: { default: true }
 							});
@@ -21667,8 +22419,8 @@
 								value: "cells",
 								class: "panel-content cells-content",
 								children: ($$anchor, $$slotProps) => {
-									var fragment_7 = root_3();
-									var node_13 = first_child(fragment_7);
+									var fragment_9 = root_3();
+									var node_13 = first_child(fragment_9);
 									CellScope(node_13, {
 										get model() {
 											return $$props.model;
@@ -21691,7 +22443,7 @@
 											return get$2(type);
 										}
 									});
-									append($$anchor, fragment_7);
+									append($$anchor, fragment_9);
 								},
 								$$slots: { default: true }
 							});
@@ -21709,6 +22461,7 @@
 		});
 		PanelFooter(sibling(node_1, 2), {});
 		reset(section);
+		template_effect(($0) => set_attribute(section, "aria-label", $0), [() => t("Эффективность таблицы")]);
 		append($$anchor, section);
 		pop();
 	}
@@ -21845,7 +22598,7 @@
 			class: "scope-sr-only",
 			role: "status"
 		},
-		"Идёт расчёт"
+		" "
 	]]);
 	var root_2 = /* @__PURE__ */ from_tree([
 		[
@@ -21892,7 +22645,10 @@
 		reset(span);
 		var node_1 = sibling(span, 2);
 		var consequent = ($$anchor) => {
-			append($$anchor, root_1());
+			var span_3 = root_1();
+			var text = only_child(span_3, true);
+			template_effect(($0) => set_text(text, $0), [() => t("Идёт расчёт")]);
+			append($$anchor, span_3);
 		};
 		if_block(node_1, ($$render) => {
 			if ($$props.model.running) $$render(consequent);
@@ -21903,7 +22659,7 @@
 	}
 	//#endregion
 	//#region userscript/src/live.svelte.js
-	var clock = new Intl.DateTimeFormat("ru-RU", {
+	var clock = () => new Intl.DateTimeFormat(numberLocale(), {
 		hour: "2-digit",
 		minute: "2-digit"
 	});
@@ -22093,10 +22849,10 @@
 			};
 		}
 		get updated() {
-			return this.snapshot?.updatedAt ? clock.format(this.snapshot.updatedAt) : "—";
+			return this.snapshot?.updatedAt ? clock().format(this.snapshot.updatedAt) : "—";
 		}
 		sheetName(id) {
-			return id === "all" ? "Вся таблица" : this.sheets.find((item) => item.value === id)?.label ?? "Лист недоступен";
+			return id === "all" ? t("Вся таблица") : this.sheets.find((item) => item.value === id)?.label ?? t("Лист недоступен");
 		}
 		cellHref(cell) {
 			return cellURL(cell, location.href);
@@ -22150,7 +22906,7 @@
 				}
 				const setup = this.api.status();
 				this.needsSetup = ["disabled", "missed"].includes(setup.status);
-				this.error = result.request?.state === "timeout" ? "Нет нового результата за 120 с. Автоматического повтора нет." : result.request?.state === "error" ? "Расчёт не запущен." : result.request?.state === "queued-without-measurements" ? `Пересчёт запущен. Замеры пока недоступны: ${result.request.measurementWarning}` : result.measurementError ?? setup.error ?? (setup.status === "waiting" ? "Ожидаем раннего подключения к вычислениям…" : null);
+				this.error = result.request?.state === "timeout" ? t("Нет нового результата за 120 с. Автоматического повтора нет.") : result.request?.state === "error" ? t("Расчёт не запущен.") : result.request?.state === "queued-without-measurements" ? t("Пересчёт запущен. Замеры пока недоступны: {reason}", { reason: result.request.measurementWarning }) : result.measurementError ?? setup.error ?? (setup.status === "waiting" ? t("Ожидаем раннего подключения к вычислениям…") : null);
 			} catch (error) {
 				this.error = error.message;
 			}
@@ -22197,7 +22953,7 @@
 		}
 		download() {
 			if (!this.snapshot) {
-				this.error = "Результаты ещё не получены.";
+				this.error = t("Результаты ещё не получены.");
 				return;
 			}
 			const url = URL.createObjectURL(new Blob([JSON.stringify(this.snapshot, null, 2)], { type: "application/json" }));
@@ -23163,7 +23919,7 @@ a.cell-address:focus-visible {
 		root.append(style);
 		const trigger = element("button", "scope-trigger");
 		trigger.type = "button";
-		trigger.title = "Производительность таблицы";
+		trigger.title = t("Производительность таблицы");
 		trigger.setAttribute("aria-label", trigger.title);
 		trigger.setAttribute("aria-expanded", "false");
 		const surface = element("div", "scope-surface");
@@ -23343,6 +24099,7 @@ a.cell-address:focus-visible {
 	//#endregion
 	//#region userscript/src/entry.js
 	if (window === window.top && !globalThis.SheetsScopeUserscript) {
+		setLocale(detectLocale(document));
 		const bookId = bookIdFromURL(location.href);
 		if (bookId) {
 			let setting, enabled = true, storageError = null;
@@ -23350,7 +24107,7 @@ a.cell-address:focus-visible {
 				setting = preferences(localStorage, bookId);
 				enabled = setting.enabled();
 			} catch {
-				storageError = "Настройка замеров недоступна: браузер запретил localStorage.";
+				storageError = t("Настройка замеров недоступна: браузер запретил localStorage.");
 			}
 			const timing = installTiming(globalThis, enabled);
 			const native = createAdapter(timing);
