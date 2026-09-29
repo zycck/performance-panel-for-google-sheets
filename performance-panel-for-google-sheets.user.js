@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Performance Panel for Google Sheets
 // @namespace    urn:sheets-scope:userscript
-// @version      0.3.18
+// @version      0.3.19
 // @description  Нативная панель производительности Google Таблиц: пересчёт листа и медленные ячейки.
 // @match        https://docs.google.com/spreadsheets/*
 // @run-at       document-start
@@ -830,15 +830,28 @@
 			stats: true,
 			counters: true,
 			evidence: "research/native-build-2026-09-29-manifest.json"
+		},
+		{
+			host: "/3494893496-calcworkerhost_core.js",
+			stats: true,
+			counters: true,
+			evidence: "research/native-build-2026-09-29-firefox-manifest.json"
 		}
 	];
-	var verifiedGlue = [{
-		sha256: "6bcf40ff27a63790e6184f4a81d2b1d6f5d165518fb23768d28f90b0acd055ed",
-		evidence: "research/native-build-2026-09-29-manifest.json"
-	}, {
-		sha256: "6addda89a4371f2f4324cb1b83a91789e77b311d4be7dc84ae89efd4d1f1d9e8",
-		evidence: "research/native-build-ggV6-manifest.json"
-	}];
+	var verifiedGlue = [
+		{
+			sha256: "6bcf40ff27a63790e6184f4a81d2b1d6f5d165518fb23768d28f90b0acd055ed",
+			evidence: "research/native-build-2026-09-29-manifest.json"
+		},
+		{
+			sha256: "6addda89a4371f2f4324cb1b83a91789e77b311d4be7dc84ae89efd4d1f1d9e8",
+			evidence: "research/native-build-ggV6-manifest.json"
+		},
+		{
+			sha256: "513b0e47620d6cb490f5788a7325eb5b906053dd9aec16e3cb0bc4d4e95a737e",
+			evidence: "research/native-build-2026-09-29-firefox-manifest.json"
+		}
+	];
 	var extensionHost = workers.find((worker) => worker.extension).host;
 	var workerHostOf = (pathname) => pathname.match(/\/\d+-calcworkerhost[^/]*\.js$/)?.[0] ?? null;
 	function workerProfile(pathname) {
@@ -2699,7 +2712,7 @@
 			const session = data.session;
 			const setup = timing.status();
 			return {
-				version: "0.3.18",
+				version: "0.3.19",
 				nativeBuild: native.build.id,
 				bookPath: location.pathname,
 				capturedAt: Date.now(),
@@ -2799,7 +2812,7 @@
 			});
 		}
 		return Object.freeze({
-			version: "0.3.18",
+			version: "0.3.19",
 			open,
 			read,
 			refresh,
@@ -19805,7 +19818,7 @@
 		]
 	]]);
 	function PanelFooter($$anchor) {
-		const version = "0.3.18";
+		const version = "0.3.19";
 		var footer = root$6();
 		var text = only_child(child(footer));
 		next$1();
