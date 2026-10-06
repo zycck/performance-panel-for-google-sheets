@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Performance Panel for Google Sheets
 // @namespace    urn:sheets-scope:userscript
-// @version      0.3.20
+// @version      0.3.21
 // @description  Нативная панель производительности Google Таблиц: пересчёт листа и медленные ячейки.
 // @match        https://docs.google.com/spreadsheets/*
 // @run-at       document-start
@@ -1180,10 +1180,54 @@
 	var keywords = new Set("break case catch class const continue debugger default delete do else export extends false finally for function if import in instanceof let new null return super switch this throw true try typeof var void while with yield async await of undefined arguments".split(" "));
 	var messageId = /^"[A-Za-z0-9$]{1,3}[_`0-9]"$/;
 	var source$1 = (fn) => typeof fn === "function" ? Function.prototype.toString.call(fn) : "";
-	var tokenize = (text) => text.match(tokenPattern) ?? [];
 	var isName = (token) => identifierPattern.test(token) && !keywords.has(token);
-	function normalized(text, { messageIds = false, keepKeywords = false } = {}) {
-		return tokenize(text).map((token) => identifierPattern.test(token) && (!keepKeywords || !keywords.has(token)) ? "N" : messageIds && messageId.test(token) ? "\"I\"" : token).join(" ");
+	var arrowSensitive = /* @__PURE__ */ new Set([
+		"this",
+		"arguments",
+		"super"
+	]);
+	function plainArrows(tokens) {
+		const out = [];
+		for (let i = 0; i < tokens.length; i++) {
+			if (tokens[i] !== "=" || tokens[i + 1] !== ">" || tokens[i + 2] !== "{" || !out.length) {
+				out.push(tokens[i]);
+				continue;
+			}
+			let from = -1;
+			const last = out[out.length - 1];
+			if (last === ")") {
+				from = out.length - 2;
+				while (from >= 0 && (isName(out[from]) || out[from] === ",")) from--;
+				if (out[from] !== "(") from = -1;
+			} else if (isName(last) && out[out.length - 2] !== ".") from = out.length - 1;
+			let end = i + 2, depth = 0;
+			for (; end < tokens.length; end++) if (tokens[end] === "{") depth++;
+			else if (tokens[end] === "}" && !--depth) break;
+			if (from < 0 || end >= tokens.length || tokens.slice(i + 3, end).some((token) => arrowSensitive.has(token))) {
+				out.push(tokens[i]);
+				continue;
+			}
+			const params = out.splice(from);
+			out.push("function", ...params[0] === "(" ? params : [
+				"(",
+				...params,
+				")"
+			], "{");
+			i += 2;
+		}
+		return out;
+	}
+	var tokenize = (text) => plainArrows(text.match(tokenPattern) ?? []);
+	var plainArrowSource = (text) => !text.includes("=>") ? text : tokenize(text).reduce((out, token) => out + (/[\w$]$/.test(out) && /^[\w$]/.test(token) ? " " : "") + token, "");
+	function withoutInitCalls(tokens) {
+		const body = tokens.indexOf("{");
+		if (body < 0) return tokens;
+		let end = body + 1;
+		while (isName(tokens[end]) && tokens[end + 1] === "(" && tokens[end + 2] === ")" && tokens[end + 3] === ";") end += 4;
+		return end === body + 1 ? tokens : [...tokens.slice(0, body + 1), ...tokens.slice(end)];
+	}
+	function normalized(text, { messageIds = false, keepKeywords = false, skipInit = false } = {}) {
+		return (skipInit ? withoutInitCalls(tokenize(text)) : tokenize(text)).map((token) => identifierPattern.test(token) && (!keepKeywords || !keywords.has(token)) ? "N" : messageIds && messageId.test(token) ? "\"I\"" : token).join(" ");
 	}
 	async function sha256(text) {
 		const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
@@ -1243,6 +1287,7 @@
 		},
 		{
 			host: "/3494893496-calcworkerhost_core.js",
+			wasm: "/1490220236-calcworker_wasm.wasm",
 			stats: true,
 			counters: true,
 			evidence: "research/native-build-2026-09-29-firefox-manifest.json"
@@ -1264,12 +1309,22 @@
 	];
 	var extensionHost = workers.find((worker) => worker.extension).host;
 	var workerHostOf = (pathname) => pathname.match(/\/\d+-calcworkerhost[^/]*\.js$/)?.[0] ?? null;
-	function workerProfile(pathname) {
-		const listed = workers.find((worker) => pathname.endsWith(worker.host));
-		return listed ? {
+	function engineWasmOf(url) {
+		try {
+			const wasm = JSON.parse(atob(url.searchParams.get("wb"))).findLast((item) => typeof item === "string");
+			return new URL(wasm).pathname.match(/\/\d+-calcworker[^/]*\.wasm$/)?.[0] ?? null;
+		} catch {
+			return null;
+		}
+	}
+	function workerProfile(url) {
+		const listed = workers.find((worker) => url.pathname.endsWith(worker.host));
+		if (!listed) return null;
+		const engineVerified = listed.counters && (!listed.wasm || engineWasmOf(url) === listed.wasm);
+		return {
 			...listed,
-			engineVerified: listed.counters
-		} : null;
+			engineVerified
+		};
 	}
 	async function verifyWorkerGlue(text, host) {
 		if (typeof text !== "string") return null;
@@ -1405,7 +1460,7 @@
 						return worker;
 					}
 					workerHost = host;
-					let profile = workerProfile(url.pathname), pending = null;
+					let profile = workerProfile(url), pending = null;
 					if (!enabled && !shared()) return worker;
 					const receive = (event) => {
 						if (profile) results.receive(event.data, profile.counters, profile.engineVerified);
@@ -1702,7 +1757,7 @@
 		QC: "f391e153a014c3d7d67f5d9956ebe09fae379a96eb41c77e1731361381ea5973",
 		Usd: "737a042a2b6f3b23b860027598cff3b9269f0d8b3f8f61772699ce75680f2220",
 		wtc: "4bf6c0d7806e2cedb690f1774044b7ad9e3d31e35d9d3d5f6e095902abfdf57c",
-		ns: "753f472a5dd33db4e029b5e7b2583fcbc18fecc8b299b04a7c511d112666ee8f",
+		ns: "b9d726c12ea20ddaa7b399037ce9049d06d5c8fa3af8e2c2da8d544977351fd7",
 		Woh: "16a725dcc7971653654a44a95148545d3ca0bdf78e39cdc311159f483aa943bb",
 		Fj: "36c65d240ca4d7daa0b7e577ad4bd8504df70a4cd60c506c2ab9f46b2efc55b7",
 		oP: "b2c2e14e85e071751b88358eda7848bbf46834d70f4ceab4f3fb6c98abfae755",
@@ -1794,13 +1849,17 @@
 		}
 		return null;
 	}
-	async function discoverNativeBuild(g) {
+	async function discoverNativeBuild(g, trace = null) {
+		const note = (step, detail) => {
+			trace?.(step, detail);
+		};
 		const names = Object.getOwnPropertyNames(g);
 		const providers = /* @__PURE__ */ new Set();
 		for (const name of names) {
 			const fn = own$3(g, name);
 			if (typeof fn === "function" && fn.length === 0 && new RegExp(`^function ${identifier}\\(\\)\\{return ${identifier}\\("ritzmain"\\)\\}$`).test(source$1(fn))) providers.add(name);
 		}
+		note("providers", [...providers]);
 		if (!providers.size) return null;
 		const candidates = [];
 		for (const name of names) {
@@ -1809,17 +1868,29 @@
 			const match = source$1(fn).match(new RegExp(`^function ${identifier}\\(\\)\\{return (${identifier})\\(\\)\\.${identifier}\\(\\)\\}$`));
 			if (match && providers.has(match[1])) candidates.push([name, fn]);
 		}
+		note("getterCandidates", candidates.map(([name]) => name));
 		if (candidates.length > 20) return null;
 		for (const [getterName, getter] of candidates) {
+			const miss = (reason) => note("candidate", {
+				getter: getterName,
+				rejected: reason
+			});
 			let model;
 			try {
 				model = Reflect.apply(getter, g, []);
-			} catch {
+			} catch (error) {
+				miss(`getter threw: ${error?.message}`);
 				continue;
 			}
-			if (!model || typeof model !== "object") continue;
+			if (!model || typeof model !== "object") {
+				miss("getter returned no object");
+				continue;
+			}
 			const prototype = Object.getPrototypeOf(model);
-			if (!prototype) continue;
+			if (!prototype) {
+				miss("model has no prototype");
+				continue;
+			}
 			const functions = Object.getOwnPropertyNames(prototype).map((name) => [name, own$3(prototype, name)]).filter(([, fn]) => typeof fn === "function");
 			const shapeMap = /* @__PURE__ */ new Map();
 			for (const [name, fn] of functions) {
@@ -1829,22 +1900,59 @@
 			}
 			const one = (role) => (shapeMap.get(shapes[role]) ?? []).length === 1 ? shapeMap.get(shapes[role])[0] : null;
 			const recalc = one("t4e"), bookGetter = one("wm"), formula = one("NNc"), hasFormula = one("Oqb");
-			if (!recalc || !bookGetter || !formula || !hasFormula) continue;
-			const recalcSource = source$1(recalc[1]);
+			note("modelShapes", {
+				getter: getterName,
+				t4e: recalc?.[0] ?? null,
+				wm: bookGetter?.[0] ?? null,
+				NNc: formula?.[0] ?? null,
+				Oqb: hasFormula?.[0] ?? null,
+				candidates: Object.fromEntries([
+					"t4e",
+					"wm",
+					"NNc",
+					"Oqb"
+				].map((role) => [role, (shapeMap.get(shapes[role]) ?? []).length]))
+			});
+			if (!recalc || !bookGetter || !formula || !hasFormula) {
+				miss("model has no unique t4e/wm/NNc/Oqb shapes");
+				continue;
+			}
+			const recalcSource = plainArrowSource(source$1(recalc[1]));
 			const [, store, accessor] = recalcSource.match(new RegExp(`^function\\(\\)\\{var a=this\\.(${identifier})\\.(${identifier})\\(\\),`)) ?? [];
 			const queue = recalcSource.match(new RegExp(`(${identifier})\\(this\\.(${identifier}),(${identifier}),null,18\\)`));
 			const range = recalcSource.match(new RegExp(`function\\((${identifier})\\)\\{${identifier}\\(${identifier},(${identifier})\\(\\1\\.(${identifier})\\)\\)\\}`));
 			const chain = recalcSource.match(new RegExp(`(${identifier})\\(this\\.(${identifier}),(${identifier})\\((${identifier})\\((${identifier})\\((${identifier})\\((${identifier})\\(\\),0\\),(${identifier})`));
-			if (!store || !queue || !range || !chain || chain[2] !== store || chain[8] !== "a") continue;
+			note("recalcAnchors", {
+				store: store ?? null,
+				accessor: accessor ?? null,
+				queue: queue?.slice(1) ?? null,
+				range: range?.slice(1) ?? null,
+				chain: chain?.slice(1) ?? null
+			});
+			if (!store || !queue || !range || !chain || chain[2] !== store || chain[8] !== "a") {
+				miss("recalculation body anchors (store/queue/range/chain) not matched");
+				continue;
+			}
 			const [, Woh, , Fj, oP, DP, pP, qP] = chain;
 			const [, jmg, queueField, tmg] = queue;
 			const [, , ns, sheetIdField] = range;
-			if (queueField === store || !recalcSource.includes(`${oP}(${DP}(${pP}(${qP}(),2),a))`) || !recalcSource.includes(`${oP}(${DP}(${pP}(${qP}(),1),a))`)) continue;
+			if (queueField === store || !recalcSource.includes(`${oP}(${DP}(${pP}(${qP}(),2),a))`) || !recalcSource.includes(`${oP}(${DP}(${pP}(${qP}(),1),a))`)) {
+				miss("command chain (types 2 and 1) or queue field mismatch");
+				continue;
+			}
 			const book = Reflect.apply(bookGetter[1], model, []);
 			const bookList = recalcSource.match(new RegExp(`${identifier}\\(a\\.(${identifier})\\(\\)\\)\\.${identifier}\\(`))?.[1];
 			const bookPrototype = book && Object.getPrototypeOf(book);
 			const bookGrid = bookPrototype && Object.getOwnPropertyNames(bookPrototype).find((name) => source$1(own$3(bookPrototype, name)).includes("No sheet found with id %s"));
-			if (!book || typeof book !== "object" || !bookList || typeof book[bookList] !== "function" || !bookGrid) continue;
+			note("book", {
+				bookList: bookList ?? null,
+				bookGrid: bookGrid ?? null,
+				book: typeof book
+			});
+			if (!book || typeof book !== "object" || !bookList || typeof book[bookList] !== "function" || !bookGrid) {
+				miss("book object, list method or grid method not found");
+				continue;
+			}
 			const exists = (shapeMap.get(shapes.oO) ?? []).filter(([, fn]) => {
 				const helper = source$1(fn).match(new RegExp(`return (${identifier})\\(this\\.${store}\\.${accessor}\\(\\),${identifier}\\)`))?.[1];
 				return helper && typeof own$3(g, helper) === "function";
@@ -1858,7 +1966,14 @@
 				const method = source$1(fn).match(new RegExp(`this\\.${store}\\.${accessor}\\(\\)\\.(${identifier})\\(a\\)\\.${identifier}\\(\\)`))?.[1];
 				return method && source$1(own$3(bookPrototype, method)).includes("Sheet not found");
 			});
-			if (verifiedExists.length !== 1 || sheetType.length !== 1) continue;
+			note("sheetMethods", {
+				exists: verifiedExists.map(([name]) => name),
+				sheetType: sheetType.map(([name]) => name)
+			});
+			if (verifiedExists.length !== 1 || sheetType.length !== 1) {
+				miss("oO/Vod not unique");
+				continue;
+			}
 			const globals = {
 				dx: getterName,
 				ns,
@@ -1871,8 +1986,11 @@
 				jmg,
 				tmg
 			};
-			if (typeof own$3(g, tmg) !== "object") continue;
-			let valid = true;
+			if (typeof own$3(g, tmg) !== "object") {
+				miss("queue constant is not an object");
+				continue;
+			}
+			const badRoles = [];
 			for (const role of [
 				"ns",
 				"Woh",
@@ -1882,8 +2000,11 @@
 				"pP",
 				"qP",
 				"jmg"
-			]) if (!await hasShape(own$3(g, globals[role]), shapes[role])) valid = false;
-			if (!valid) continue;
+			]) if (!await hasShape(own$3(g, globals[role]), shapes[role], role === "ns" ? { skipInit: true } : void 0)) badRoles.push(`${role}=${globals[role]}`);
+			if (badRoles.length) {
+				miss(`helper shape mismatch: ${badRoles.join(", ")}`);
+				continue;
+			}
 			for (const [role, marker] of [
 				["T5h", "\"CalcApply\""],
 				["Abg", "\"fecw\""],
@@ -2070,9 +2191,7 @@
 			}
 		};
 	}
-	//#endregion
-	//#region userscript/src/native/relation-bindings.js
-	var roles$2 = {
+	var relations_default = {
 		build: "ggV6s0daVJw",
 		provenance: "research/archive/native-build-ggV6-2026-09-22/ritzmain.js, core.js, live-symbols.json; recorded=true means the SHA equals a live-verified fingerprint",
 		roles: {
@@ -2268,8 +2387,61 @@
 				"sha": "3cd291a38d7da0d85178118189ec0c7331b0cea70f77ac51fa093f2cede5f0b7",
 				"recorded": false
 			}
+		},
+		variants: {
+			"wrapped": {
+				"build": "Mm_qTNRMLew",
+				"provenance": "research/archive/native-build-2026-10-06-Mm_qTNRMLew/core.js (95431ea789d2b58d2c7501d1d34d6b01f2180344e1832a47c1e72a9216b36356) and ritzmain.js (f2e45c6f1e54168219f0c2dae37bb56e60f9b8c16a0b4b6046f4617962ae9f8f); archive only, static references wrapped in a {ea: list} holder; native-build-2026-10-06 (5caBzNSDBaQ) aligns with the same bodies",
+				"roles": {
+					"yQf": {
+						"owner": "global",
+						"source": "function OUf(a){if(G$e(a.ea)&&G$e(a.ma))return a.oa?NUf(a.oa).ea:null;var c=ck();a.oa&&sF(c,NUf(a.oa).ea);a.ea&&a.ea.forEach(function(e,f){gk(c,f)});a.ma&&a.ma.forEach(function(e,f){gk(c,f)});return Wye(kk(c),Xf())}",
+						"sha": "8aab761766f67b50abec79696a6e94e08a7e205dd037b1444842533366803faa",
+						"recorded": false
+					},
+					"xQf": {
+						"owner": "global",
+						"source": "function NUf(a){var c=a.oa;c||(c=a.oa,c||(c=Yp(v4e(MUf(a))),a.oa=c));return c}",
+						"sha": "3f017e780e3cc4b274010de142e652f8dd11de329ff1d6d26c3d8c8bfacf962f",
+						"recorded": false
+					},
+					"v4e": {
+						"owner": "global",
+						"source": "function v4e(a){u4e();if(a)if(Uj(a))a=p4e;else{let c=new s4e;c.ea=a;a=c}else a=null;return a}",
+						"sha": "387c00a3e928b3c05b115ecef3d35dfbee1c9a9a227efcec017867650be59e64",
+						"recorded": false
+					},
+					"Yp": {
+						"owner": "global",
+						"source": "function Yp(a){return Xp(a,null)}",
+						"sha": "d8b6abbad8326a07b95337122c76763976840edc2e1ded8eab9b7880e4305c09",
+						"recorded": false
+					}
+				}
+			},
+			"ordered": {
+				"build": "Mm_qTNRMLew",
+				"provenance": "research/archive/native-build-2026-10-06-Mm_qTNRMLew/core.js (95431ea789d2b58d2c7501d1d34d6b01f2180344e1832a47c1e72a9216b36356) and ritzmain.js (f2e45c6f1e54168219f0c2dae37bb56e60f9b8c16a0b4b6046f4617962ae9f8f); archive only, range constructor that swaps inverted indices before ns; native-build-2026-10-06 (5caBzNSDBaQ) aligns with the same bodies",
+				"roles": { "es": {
+					"owner": "global",
+					"source": "function ks(a,c,e,f,g){js();if(c!=-2147483647&&f!=-2147483647&&c>f){qj(oZa,(sj(),tj),\"Inverted row range: bad row indices [\"+c+\",\"+f+\")\",Hka());var h=c;c=f;f=h}e!=-2147483647&&g!=-2147483647&&e>g&&(qj(oZa,(sj(),tj),\"Inverted col range:bad col indices [\"+e+\",\"+g+\")\",Hka()),h=e,e=g,g=h);return ss(a,c,e,f,g)}",
+					"sha": "315c8b0d418b2b0828bd93745ce25731b52afdaf97c13260d88cf67f776a287f",
+					"recorded": false
+				} }
+			}
 		}
-	}.roles;
+	};
+	//#endregion
+	//#region userscript/src/native/relation-bindings.js
+	var roles$2 = relations_default.roles;
+	var sources = (role) => [{
+		variant: null,
+		source: roles$2[role]?.source
+	}, ...Object.entries(relations_default.variants ?? {}).map(([variant, value]) => ({
+		variant,
+		source: value.roles[role]?.source
+	}))].filter((entry) => entry.source);
+	var matches$1 = (role, text) => sources(role).some((entry) => align(entry.source, text));
 	var own$2 = (value, key) => Object.getOwnPropertyDescriptor(value ?? {}, key)?.value;
 	var calls = {
 		cell: { Qt: "@Qt(this)" },
@@ -2283,6 +2455,13 @@
 		},
 		yQf: { xQf: "@xQf(a.qa)" },
 		xQf: { wQf: "=@wQf(a)" },
+		"yQf:wrapped": { xQf: "@NUf(a.oa).ea" },
+		"xQf:wrapped": {
+			wQf: "v4e(@MUf(a))",
+			v4e: "Yp(@v4e(",
+			Yp: "c=@Yp(v4e"
+		},
+		"es:ordered": { ns: "return@ss(a,c,e,f,g)" },
 		wQf: { LPf: "@LPf(a," },
 		dynamicEdges: { nTf: "@nTf(a)" },
 		nTf: { mTf: "=@mTf(a)" },
@@ -2298,6 +2477,7 @@
 		supported: { SL: "@SL(this" },
 		supporting: { SL: "@SL(this" }
 	};
+	var checks = { "yQf:wrapped": (view, global) => view.at("?NUf(a.oa).@ea:null") === global("v4e").at("c.@ea=a") };
 	var searched = {
 		p2e: { arity: 4 },
 		q1e: {
@@ -2310,15 +2490,22 @@
 		const globals = /* @__PURE__ */ new Map(), methods = /* @__PURE__ */ new WeakMap();
 		const changed = (role) => Error(t("Google изменил источник связей ({role}). Нужна проверка совместимости.", { role }));
 		function verified(role, fn) {
-			const view = typeof fn === "function" ? align(roles$2[role].source, source$1(fn)) : null;
-			if (!view) throw changed(role);
-			return Object.assign(view, {
+			const live = typeof fn === "function" ? source$1(fn) : "";
+			const found = sources(role).map((entry) => ({
+				variant: entry.variant,
+				view: align(entry.source, live)
+			})).filter((entry) => entry.view);
+			if (found.length !== 1) throw changed(role);
+			return Object.assign(found[0].view, {
 				fn,
-				role
+				role,
+				variant: found[0].variant
 			});
 		}
 		function withCallees(view) {
-			for (const [role, snippet] of Object.entries(calls[view.role] ?? {})) global(role, view.at(snippet));
+			const key = view.variant ? `${view.role}:${view.variant}` : view.role;
+			for (const [role, snippet] of Object.entries(calls[key] ?? {})) global(role, view.at(snippet));
+			if (checks[key] && !checks[key](view, global)) throw changed(view.role);
 			return view;
 		}
 		function global(role, name) {
@@ -2363,7 +2550,7 @@
 			const found = /* @__PURE__ */ new Map();
 			for (let level = object && Object.getPrototypeOf(object); level && level !== Object.prototype; level = Object.getPrototypeOf(level)) for (const name of Object.getOwnPropertyNames(level)) {
 				const fn = own$2(level, name);
-				if (name !== "constructor" && !found.has(name) && typeof fn === "function" && align(roles$2[role].source, source$1(fn))) found.set(name, Object.assign(verified(role, fn), { name }));
+				if (name !== "constructor" && !found.has(name) && typeof fn === "function" && matches$1(role, source$1(fn))) found.set(name, Object.assign(verified(role, fn), { name }));
 			}
 			return [...found.values()];
 		}
@@ -3128,7 +3315,7 @@
 			const session = data.session;
 			const setup = timing.status();
 			return {
-				version: "0.3.20",
+				version: "0.3.21",
 				nativeBuild: native.build.id,
 				bookPath: location.pathname,
 				capturedAt: Date.now(),
@@ -3228,7 +3415,7 @@
 			});
 		}
 		return Object.freeze({
-			version: "0.3.20",
+			version: "0.3.21",
 			open,
 			read,
 			refresh,
@@ -20357,7 +20544,7 @@
 		]
 	]]);
 	function PanelFooter($$anchor) {
-		const version = "0.3.20";
+		const version = "0.3.21";
 		var footer = root$6();
 		var text = only_child(child(footer));
 		next$1();
