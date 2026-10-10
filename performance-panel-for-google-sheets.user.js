@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Performance Panel for Google Sheets
 // @namespace    urn:sheets-scope:userscript
-// @version      0.3.21
+// @version      0.3.22
 // @description  Нативная панель производительности Google Таблиц: пересчёт листа и медленные ячейки.
 // @match        https://docs.google.com/spreadsheets/*
 // @run-at       document-start
@@ -300,6 +300,7 @@
 		"Результаты ещё не получены.": "No results yet.",
 		"Раннее подключение пропущено. Перезагрузите таблицу после обновления скрипта.": "The script started too late. Reload the spreadsheet after updating the script.",
 		"Worker недоступен в контексте страницы.": "Worker is not available on this page.",
+		"Google изменил код обвязки Worker. Замеры включены: Worker принят по отпечатку пути сообщений, движок не сверён.": "Google changed the Worker wrapper code. Timings are on: the Worker was accepted by the fingerprint of its message path, and its engine has not been checked.",
 		"Google изменил Worker. Нужна новая проверка совместимости.": "Google changed its Worker. A new compatibility check is needed.",
 		"Google изменил Worker: код обвязки отличается от проверенного. Нужна новая проверка совместимости.": "Google changed its Worker: the wrapper code differs from the checked one. A new compatibility check is needed.",
 		"Не удалось проверить новый Worker Google ({reason}). Замеры не включены.": "Could not check Google’s new Worker ({reason}). Measurements stay off.",
@@ -1252,6 +1253,264 @@
 		} };
 	}
 	//#endregion
+	//#region userscript/src/native/glue-anchors.js
+	var expected = {
+		execMsg: 1,
+		onmessage: 1,
+		postMsg: 1,
+		wbParam: 2,
+		instantiate: 2,
+		loadData: 1,
+		ready: 1,
+		imports: 6
+	};
+	var wordAt = /[A-Za-z_$][\w$]*/y;
+	var numberAt = /\d+(?:\.\d+)?/y;
+	var stringAt = /"(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*'/y;
+	var spaceAt = /\s+/y;
+	var closers = /* @__PURE__ */ new Map([
+		["(", ")"],
+		["[", "]"],
+		["{", "}"]
+	]);
+	var regexAfter = new Set("return typeof instanceof in of new delete void throw case do else yield await".split(" "));
+	var divides = (previous) => previous !== void 0 && !regexAfter.has(previous) && (/^[\w$"'`)\]}]/.test(previous) || previous.length > 1 && previous[0] === "/");
+	var sticky = (pattern, text, at) => {
+		pattern.lastIndex = at;
+		return pattern.exec(text)?.[0];
+	};
+	function regexEnd(text, from) {
+		for (let i = from + 1, inClass = false; i < text.length; i++) {
+			const c = text[i];
+			if (c === "\n") break;
+			if (c === "\\") i++;
+			else if (c === "[") inClass = true;
+			else if (c === "]") inClass = false;
+			else if (c === "/" && !inClass) {
+				i++;
+				while (/[a-z]/i.test(text[i] ?? "")) i++;
+				return i;
+			}
+		}
+		throw Error("unterminated regex literal at " + from);
+	}
+	function templateEnd(text, from) {
+		for (let i = from + 1; i < text.length; i++) if (text[i] === "\\") i++;
+		else if (text[i] === "`") return i + 1;
+		else if (text[i] === "$" && text[i + 1] === "{") i = scan(text, i + 2, true).end - 1;
+		throw Error("unterminated template");
+	}
+	function scan(text, from = 0, nested = false) {
+		const tokens = [], open = [];
+		let i = from;
+		while (i < text.length) {
+			const space = sticky(spaceAt, text, i);
+			if (space) {
+				i += space.length;
+				continue;
+			}
+			const c = text[i], previous = tokens[tokens.length - 1];
+			let token;
+			if (c === "/" && text[i + 1] === "*") {
+				const end = text.indexOf("*/", i + 2);
+				if (end < 0) throw Error("unterminated comment");
+				i = end + 2;
+				continue;
+			} else if (c === "/" && text[i + 1] === "/") {
+				const end = text.indexOf("\n", i);
+				i = end < 0 ? text.length : end;
+				continue;
+			} else if (c === "/" && !divides(previous)) token = text.slice(i, regexEnd(text, i));
+			else if (c === "\"" || c === "'") {
+				token = sticky(stringAt, text, i);
+				if (!token) throw Error("unterminated string");
+			} else if (c === "`") token = text.slice(i, templateEnd(text, i));
+			else token = sticky(wordAt, text, i) ?? sticky(numberAt, text, i) ?? c;
+			i += token.length;
+			if (closers.has(token)) open.push(closers.get(token));
+			else if (token === ")" || token === "]" || token === "}") {
+				if (!open.length && nested && token === "}") return {
+					tokens,
+					end: i
+				};
+				if (open.pop() !== token) throw Error("unbalanced brackets");
+			}
+			tokens.push(token);
+		}
+		if (open.length || nested) throw Error("unbalanced brackets");
+		return {
+			tokens,
+			end: i
+		};
+	}
+	var blockStatements = /* @__PURE__ */ new Set([
+		"function",
+		"class",
+		"if",
+		"for",
+		"while",
+		"switch",
+		"try",
+		"with",
+		"{"
+	]);
+	var continuations = /* @__PURE__ */ new Set([
+		"else",
+		"catch",
+		"finally"
+	]);
+	function statements(tokens) {
+		const found = [];
+		let from = 0, depth = 0;
+		for (let i = 0; i < tokens.length; i++) {
+			const token = tokens[i];
+			if (closers.has(token)) depth++;
+			else if (token === ")" || token === "]" || token === "}") depth--;
+			if (depth || !(token === ";" || token === "}" && blockStatements.has(tokens[from])) || continuations.has(tokens[i + 1])) continue;
+			if (i + 1 - from > 1 || token !== ";") found.push([from, i + 1]);
+			from = i + 1;
+		}
+		if (from < tokens.length) found.push([from, tokens.length]);
+		return found;
+	}
+	function matching(tokens, open) {
+		for (let i = open, depth = 0; i < tokens.length; i++) if (closers.has(tokens[i])) depth++;
+		else if ((tokens[i] === ")" || tokens[i] === "]" || tokens[i] === "}") && !--depth) return i;
+		return -1;
+	}
+	function shape(tokens) {
+		const names = /* @__PURE__ */ new Map();
+		return tokens.map((token) => messageId.test(token) ? "\"M\"" : !isName(token) ? token : /^[A-Za-z]{4,}$/.test(token) ? token : (names.has(token) || names.set(token, "v" + names.size), names.get(token))).join(" ");
+	}
+	function facts(tokens, from, to) {
+		const found = {
+			members: /* @__PURE__ */ new Set(),
+			strings: /* @__PURE__ */ new Set(),
+			onmessage: false,
+			postArray: false,
+			props: []
+		};
+		for (let i = from; i < to; i++) {
+			const token = tokens[i], next = tokens[i + 1];
+			if (token === "." && tokens[i - 1] !== "." && isName(next)) {
+				found.members.add(next);
+				if (next === "onmessage" && tokens[i + 2] === "=" && tokens[i + 3] === "function") {
+					let at = i + 4;
+					if (isName(tokens[at])) at++;
+					const params = tokens[at] === "(" ? matching(tokens, at) : -1;
+					const end = params > 0 && tokens[params + 1] === "{" ? matching(tokens, params + 1) : -1;
+					for (let k = at; end > 0 && k < end; k++) if (tokens[k] === "." && tokens[k + 1] === "data") found.onmessage = true;
+				}
+			} else if (token === "postMessage" && next === "(" && tokens[i + 2] === "[" && tokens[i - 1] !== ".") found.postArray = true;
+			else if (token[0] === "\"" || token[0] === "'") {
+				found.strings.add(token.slice(1, -1));
+				if (next === ":" && (tokens[i - 1] === "{" || tokens[i - 1] === ",") && /calcworker\.(util|XhrRequest)\./.test(token)) {
+					let end = i + 2;
+					for (let depth = 0; end < to; end++) if (closers.has(tokens[end])) depth++;
+					else if (tokens[end] === ")" || tokens[end] === "]" || tokens[end] === "}") {
+						if (!depth--) break;
+					} else if (tokens[end] === "," && !depth) break;
+					found.props.push({
+						key: token.slice(1, -1),
+						value: [i + 2, end]
+					});
+				}
+			}
+		}
+		return found;
+	}
+	function isReadyCall(tokens, [from, to]) {
+		const tail = ", [ Date . now ( ) ] ) ;".split(" ");
+		if (!(isName(tokens[from]) && tokens[from + 1] === "(" && tokens[to - 1] === ";" && to - from > tail.length + 3)) return false;
+		if (!tail.every((token, k) => tokens[to - tail.length + k] === token) || matching(tokens, from + 1) !== to - 2) return false;
+		let commas = 0;
+		for (let i = from + 2, depth = 0; i < to - tail.length; i++) if (closers.has(tokens[i])) depth++;
+		else if (tokens[i] === ")" || tokens[i] === "]" || tokens[i] === "}") depth--;
+		else if (tokens[i] === "," && !depth) commas++;
+		return commas === 1;
+	}
+	function declarations(tokens, list) {
+		const found = /* @__PURE__ */ new Map();
+		for (const [from, to] of list) if (tokens[from] === "function" && isName(tokens[from + 1])) found.set(tokens[from + 1], [from, to]);
+		else if ([
+			"var",
+			"let",
+			"const"
+		].includes(tokens[from])) {
+			const end = tokens[to - 1] === ";" ? to - 1 : to;
+			for (let start = from + 1, i = from + 1, depth = 0; i <= end; i++) if (i < end && closers.has(tokens[i])) depth++;
+			else if (i < end && (tokens[i] === ")" || tokens[i] === "]" || tokens[i] === "}")) depth--;
+			else if (i === end || tokens[i] === "," && !depth) {
+				if (isName(tokens[start]) && tokens[start + 1] === "=") found.set(tokens[start], [start + 2, i]);
+				start = i + 1;
+			}
+		}
+		return found;
+	}
+	async function anchoredGlueDigest(text) {
+		let tokens, list;
+		try {
+			tokens = plainArrows(scan(String(text).replace(/^\uFEFF/, "")).tokens);
+			list = statements(tokens);
+		} catch (error) {
+			return {
+				sha256: null,
+				missing: [`scan: ${error.message}`]
+			};
+		}
+		const groups = {
+			execMsg: [],
+			onmessage: [],
+			postMsg: [],
+			wbParam: [],
+			instantiate: [],
+			loadData: [],
+			ready: [],
+			imports: []
+		};
+		const props = [];
+		let tailFrom = -1;
+		list.forEach((range, index) => {
+			const [from, to] = range, found = facts(tokens, from, to);
+			if (found.members.has("onmessageNativeJs")) groups.execMsg.push(range);
+			if (found.onmessage) groups.onmessage.push(range);
+			if (found.postArray) groups.postMsg.push(range);
+			if (found.members.has("_workerInitializationParamMap") || found.strings.has("wb") && found.members.has("search")) groups.wbParam.push(range);
+			if (tailFrom < 0 && found.members.has("_workerInitializationParamMap")) tailFrom = index;
+			if (found.strings.has("string.consts") || found.strings.has("js-prototypes")) groups.instantiate.push(range);
+			if (found.members.has("setInitialLoadData")) groups.loadData.push(range);
+			if (isReadyCall(tokens, range)) groups.ready.push(range);
+			props.push(...found.props);
+		});
+		const lines = {}, missing = [];
+		for (const [name, ranges] of Object.entries(groups)) if (name !== "imports") lines[name] = ranges.map(([from, to]) => shape(tokens.slice(from, to)));
+		const declared = props.some(({ value: [from, to] }) => to - from === 1 && isName(tokens[from])) ? declarations(tokens, list) : null;
+		lines.imports = props.map(({ key, value: [from, to] }) => {
+			let range = [from, to];
+			if (to - from === 1 && isName(tokens[from])) {
+				range = declared.get(tokens[from]);
+				if (!range) {
+					missing.push(`imports: ${key} is bound to an unknown ${tokens[from]}`);
+					return key;
+				}
+			}
+			return key + "=" + shape(tokens.slice(range[0], range[1]));
+		}).sort();
+		lines.tail = tailFrom < 0 ? [] : list.slice(tailFrom).map(([from, to]) => shape(tokens.slice(from, to)));
+		for (const name of Object.keys(lines)) {
+			const count = lines[name].length;
+			if (name === "tail" ? !count : count !== expected[name]) missing.push(count ? `${name} x${count}, expected ${expected[name]}` : name);
+		}
+		if (missing.length) return {
+			sha256: null,
+			missing
+		};
+		return {
+			sha256: await sha256(Object.entries(lines).map(([name, items]) => name + "\n" + items.join("\n")).join("\n")),
+			missing
+		};
+	}
+	//#endregion
 	//#region userscript/src/native/workers.js
 	var workers = [
 		{
@@ -1307,6 +1566,15 @@
 			evidence: "research/native-build-2026-09-29-firefox-manifest.json"
 		}
 	];
+	var verifiedAnchors = [{
+		variant: "cd",
+		sha256: "9499557da834a888cf7e19996d2b435feb9a1ce4734f7bbd8b47552001a1201e",
+		evidence: "research/native-build-ggV6-manifest.json, research/native-build-2026-09-23-manifest.json, research/native-build-2026-09-25-manifest.json, research/native-build-2026-09-29-manifest.json, research/native-build-2026-10-06-manifest.json, research/native-build-2026-10-06-Mm_qTNRMLew-manifest.json, research/native-build-2026-10-10-manifest.json"
+	}, {
+		variant: "core",
+		sha256: "8598c5fbb981b763ef6a629b47d118292710e0f4d03527cbdb66ebb57a6d5af5",
+		evidence: "research/native-build-2026-09-29-firefox-manifest.json, research/native-build-2026-10-06-manifest.json, research/native-build-2026-10-10-manifest.json"
+	}];
 	var extensionHost = workers.find((worker) => worker.extension).host;
 	var workerHostOf = (pathname) => pathname.match(/\/\d+-calcworkerhost[^/]*\.js$/)?.[0] ?? null;
 	function engineWasmOf(url) {
@@ -1326,15 +1594,23 @@
 			engineVerified
 		};
 	}
-	async function verifyWorkerGlue(text, host) {
+	async function verifyWorkerGlue(text, host, { glue: glueRows = verifiedGlue, anchors: anchorRows = verifiedAnchors } = {}) {
 		if (typeof text !== "string") return null;
 		const digest = await sha256(text.replace(/[0-9]+/g, "0"));
-		return verifiedGlue.some((glue) => glue.sha256 === digest) ? {
+		if (glueRows.some((glue) => glue.sha256 === digest)) return {
 			host,
 			stats: true,
 			counters: true,
 			engineVerified: false,
 			verification: "glue"
+		};
+		const { sha256: anchored } = await anchoredGlueDigest(text);
+		return anchored && anchorRows.some((row) => row.sha256 === anchored) ? {
+			host,
+			stats: true,
+			counters: true,
+			engineVerified: false,
+			verification: "anchors"
 		} : null;
 	}
 	//#endregion
@@ -1481,6 +1757,7 @@
 					};
 					if (!profile) pending = verifyHost(url.href, host).then((found) => {
 						profile = found;
+						if (found?.verification) initial.verification = found.verification;
 						if (!found && initial.status !== "unsupported") {
 							initial.status = "unsupported";
 							initial.error = t("Google изменил Worker: код обвязки отличается от проверенного. Нужна новая проверка совместимости.");
@@ -3315,7 +3592,7 @@
 			const session = data.session;
 			const setup = timing.status();
 			return {
-				version: "0.3.21",
+				version: "0.3.22",
 				nativeBuild: native.build.id,
 				bookPath: location.pathname,
 				capturedAt: Date.now(),
@@ -3415,7 +3692,7 @@
 			});
 		}
 		return Object.freeze({
-			version: "0.3.21",
+			version: "0.3.22",
 			open,
 			read,
 			refresh,
@@ -19330,7 +19607,15 @@
 		},
 		" "
 	]]);
-	var root_7$2 = /* @__PURE__ */ from_tree([
+	var root_7$2 = /* @__PURE__ */ from_tree([[
+		"p",
+		{
+			class: "connection-notice",
+			role: "status"
+		},
+		" "
+	]]);
+	var root_8$2 = /* @__PURE__ */ from_tree([
 		[
 			"div",
 			{ class: "panel-toolbar" },
@@ -19366,12 +19651,14 @@
 		,
 		" ",
 		,
+		" ",
+		,
 	], 1);
 	function Controls($$anchor, $$props) {
 		push($$props, true);
 		let helpContent = /* @__PURE__ */ state(null);
 		let helpTrigger = /* @__PURE__ */ state(null);
-		var fragment = root_7$2();
+		var fragment = root_8$2();
 		var div = first_child(fragment);
 		var node = child(div);
 		SheetCombobox(node, { get model() {
@@ -19595,6 +19882,16 @@
 		};
 		if_block(node_14, ($$render) => {
 			if ($$props.model.error) $$render(consequent_5);
+		});
+		var node_15 = sibling(node_14, 2);
+		var consequent_6 = ($$anchor) => {
+			var p_9 = root_7$2();
+			var text_16 = only_child(p_9, true);
+			template_effect(() => set_text(text_16, $$props.model.workerNote));
+			append($$anchor, p_9);
+		};
+		if_block(node_15, ($$render) => {
+			if ($$props.model.workerNote) $$render(consequent_6);
 		});
 		template_effect(($0, $1, $2, $3, $4) => {
 			button_2.disabled = $$props.model.running;
@@ -20544,7 +20841,7 @@
 		]
 	]]);
 	function PanelFooter($$anchor) {
-		const version = "0.3.21";
+		const version = "0.3.22";
 		var footer = root$6();
 		var text = only_child(child(footer));
 		next$1();
@@ -23015,6 +23312,9 @@
 		}
 		get hasResults() {
 			return this.snapshot?.available === true;
+		}
+		get workerNote() {
+			return this.snapshot?.timingSetup?.verification === "anchors" ? t("Google изменил код обвязки Worker. Замеры включены: Worker принят по отпечатку пути сообщений, движок не сверён.") : null;
 		}
 		get experimental() {
 			return this.snapshot?.experimental ?? null;
