@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Performance Panel for Google Sheets
 // @namespace    urn:sheets-scope:userscript
-// @version      0.3.22
+// @version      0.3.23
 // @description  Нативная панель производительности Google Таблиц: пересчёт листа и медленные ячейки.
 // @match        https://docs.google.com/spreadsheets/*
 // @run-at       document-start
@@ -1566,15 +1566,28 @@
 			evidence: "research/native-build-2026-09-29-firefox-manifest.json"
 		}
 	];
-	var verifiedAnchors = [{
-		variant: "cd",
-		sha256: "9499557da834a888cf7e19996d2b435feb9a1ce4734f7bbd8b47552001a1201e",
-		evidence: "research/native-build-ggV6-manifest.json, research/native-build-2026-09-23-manifest.json, research/native-build-2026-09-25-manifest.json, research/native-build-2026-09-29-manifest.json, research/native-build-2026-10-06-manifest.json, research/native-build-2026-10-06-Mm_qTNRMLew-manifest.json, research/native-build-2026-10-10-manifest.json"
-	}, {
-		variant: "core",
-		sha256: "8598c5fbb981b763ef6a629b47d118292710e0f4d03527cbdb66ebb57a6d5af5",
-		evidence: "research/native-build-2026-09-29-firefox-manifest.json, research/native-build-2026-10-06-manifest.json, research/native-build-2026-10-10-manifest.json"
-	}];
+	var verifiedAnchors = [
+		{
+			variant: "cd",
+			sha256: "9499557da834a888cf7e19996d2b435feb9a1ce4734f7bbd8b47552001a1201e",
+			evidence: "research/native-build-ggV6-manifest.json, research/native-build-2026-09-23-manifest.json, research/native-build-2026-09-25-manifest.json, research/native-build-2026-09-29-manifest.json, research/native-build-2026-10-06-manifest.json, research/native-build-2026-10-06-Mm_qTNRMLew-manifest.json, research/native-build-2026-10-10-manifest.json"
+		},
+		{
+			variant: "core",
+			sha256: "8598c5fbb981b763ef6a629b47d118292710e0f4d03527cbdb66ebb57a6d5af5",
+			evidence: "research/native-build-2026-09-29-firefox-manifest.json, research/native-build-2026-10-06-manifest.json, research/native-build-2026-10-10-manifest.json"
+		},
+		{
+			variant: "cd",
+			sha256: "9d2daf933f9e1cd68706d2139763ec315d8b542d92a9d5a33bddb18263c5b701",
+			evidence: "research/native-build-2026-10-13-manifest.json"
+		},
+		{
+			variant: "core",
+			sha256: "9587f241cf40b896e0cfe7621d965d768d8319ba8e60fd38c3c1f202b912d5f0",
+			evidence: "research/native-build-2026-10-13-manifest.json"
+		}
+	];
 	var extensionHost = workers.find((worker) => worker.extension).host;
 	var workerHostOf = (pathname) => pathname.match(/\/\d+-calcworkerhost[^/]*\.js$/)?.[0] ?? null;
 	function engineWasmOf(url) {
@@ -2330,11 +2343,7 @@
 				sheetList: "native-book",
 				registration,
 				appShell: registration?.appShell,
-				capacity: {
-					grid: "ma",
-					rows: "oa",
-					columns: "qa"
-				},
+				capacity: "native-grid",
 				fields: {
 					sheetId: sheetIdField,
 					bookList,
@@ -2918,18 +2927,38 @@
 			const refs = relationRefs(relation), key = own$2(pair, found.key);
 			return key === own$2(relation, refs.supported) ? "primary" : key === own$2(relation, refs.supporting) ? "secondary" : null;
 		}
+		function gridFields(grid) {
+			const cell = method(grid, "cell"), qt = global("Qt"), chunkField = qt.at("a.@oa.Bj()");
+			const chunk = own$2(grid, chunkField);
+			if (!chunk) return null;
+			method(chunk, "chunkRead");
+			const bounds = global("aYf");
+			return {
+				chunk,
+				chunkField,
+				cellMethod: cell.name,
+				ready: qt.at("a.oa.@Bj()"),
+				rows: bounds.at("c>=a.@qa"),
+				columns: bounds.at("e>=a.@va")
+			};
+		}
 		return {
+			gridFields,
+			gridSize(grid) {
+				const fields = gridFields(grid);
+				return fields && {
+					rows: own$2(fields.chunk, fields.rows),
+					columns: own$2(fields.chunk, fields.columns)
+				};
+			},
 			cellReader(grid) {
-				const cell = method(grid, "cell"), qt = global("Qt");
-				const chunk = own$2(grid, qt.at("a.@oa.Bj()")), ready = qt.at("a.oa.@Bj()");
-				if (!chunk || typeof chunk[ready] !== "function" || !chunk[ready]()) return null;
-				method(chunk, "chunkRead");
-				const bounds = global("aYf");
+				const fields = gridFields(grid), chunk = fields?.chunk;
+				if (!chunk || typeof chunk[fields.ready] !== "function" || !chunk[fields.ready]()) return null;
 				return {
 					chunk,
-					cellMethod: cell.name,
-					rows: own$2(chunk, bounds.at("c>=a.@qa")),
-					columns: own$2(chunk, bounds.at("e>=a.@va"))
+					cellMethod: fields.cellMethod,
+					rows: own$2(chunk, fields.rows),
+					columns: own$2(chunk, fields.columns)
 				};
 			},
 			forward(cell) {
@@ -3124,8 +3153,7 @@
 			available: true
 		};
 	}
-	function createRelationReader(g, gridOf) {
-		const bindings = createRelationBindings(g);
+	function createRelationReader(g, gridOf, bindings = createRelationBindings(g)) {
 		return async (selection) => {
 			const report = {
 				status: "unavailable",
@@ -3306,12 +3334,13 @@
 			].filter((role) => native.build.fingerprints[role]);
 			await verify(roles, Object.fromEntries(roles.map((role) => [role, model[native.member(role)]])));
 		}
+		const gridBindings = createRelationBindings(g);
 		const readRelations = createRelationReader(g, async (sheetId) => {
 			await native.select();
 			const model = call("dx");
 			await verifyModel(model);
 			return method(model, "wm")[native.build.fields.bookGrid ?? "Ad"](sheetId);
-		});
+		}, gridBindings);
 		function app() {
 			if (location.origin !== "https://docs.google.com" || !/^\/spreadsheets\/(?:u\/\d+\/)?d\/[\w-]+\/edit\/?$/.test(location.pathname)) throw Error(t("Откройте Google-таблицу."));
 			if (!document.getElementById("t-name-box") || typeof g.waffle_api?.getInstanceOfApp !== "function") throw Error(t("Дождитесь загрузки таблицы."));
@@ -3383,8 +3412,11 @@
 					if (!Array.isArray(grids)) throw Error(t("Список листов недоступен."));
 					let total = 0;
 					for (const grid of grids) {
-						const storage = grid?.[native.build.capacity.grid];
-						const rows = storage?.[native.build.capacity.rows], columns = storage?.[native.build.capacity.columns];
+						let size = null;
+						try {
+							size = gridBindings.gridSize(grid);
+						} catch {}
+						const { rows, columns } = size ?? {};
 						const cells = rows * columns;
 						if (!Number.isSafeInteger(rows) || !Number.isSafeInteger(columns) || rows < 0 || columns < 0 || !Number.isSafeInteger(cells) || !Number.isSafeInteger(total + cells)) throw Error(t("Размеры листов изменились или недоступны."));
 						total += cells;
@@ -3592,7 +3624,7 @@
 			const session = data.session;
 			const setup = timing.status();
 			return {
-				version: "0.3.22",
+				version: "0.3.23",
 				nativeBuild: native.build.id,
 				bookPath: location.pathname,
 				capturedAt: Date.now(),
@@ -3692,7 +3724,7 @@
 			});
 		}
 		return Object.freeze({
-			version: "0.3.22",
+			version: "0.3.23",
 			open,
 			read,
 			refresh,
@@ -20841,7 +20873,7 @@
 		]
 	]]);
 	function PanelFooter($$anchor) {
-		const version = "0.3.22";
+		const version = "0.3.23";
 		var footer = root$6();
 		var text = only_child(child(footer));
 		next$1();
