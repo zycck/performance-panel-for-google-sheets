@@ -55,7 +55,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           gh label create google-watch --color B60205 --description 'Google Sheets build needs attention (watch/check.mjs)' --force
-          gh issue list --label google-watch --state open --limit 100 --json number,title,body,comments > issues.json
+          gh issue list --label google-watch --state open --limit 100 --json number,title,author,body,comments > issues.json
           node watch/check.mjs --plan-issue issues.json --report report.json > plan.json
           case "$(jq -r .action plan.json)" in
             create) gh issue create --title "$(jq -r .title plan.json)" --label google-watch --body-file report.md ;;

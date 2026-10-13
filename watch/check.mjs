@@ -2322,11 +2322,27 @@ function issueFor(builds) {
     builds: Object.fromEntries(flagged.map((build) => [build.build, hash16(factsOf(build))]))
   };
 }
+var workflowLogins = new Set(["github-actions", "github-actions[bot]", "app/github-actions"]);
+var byWorkflow = (item) => workflowLogins.has(item?.author?.login);
+var workflowTexts = (issue) => [
+  ...byWorkflow(issue) ? [issue.body ?? ""] : [],
+  ...(issue.comments ?? []).filter(byWorkflow).map((comment) => comment.body ?? "")
+];
+var decoded = (text) => {
+  try {
+    return decodeURIComponent(text);
+  } catch {
+    return null;
+  }
+};
 var postedBuilds = (issue) => {
   const latest = new Map;
-  for (const text of [issue.body ?? "", ...(issue.comments ?? []).map((comment) => comment.body ?? "")])
-    for (const match of text.matchAll(buildMarker))
-      latest.set(decodeURIComponent(match[1]), match[2]);
+  for (const text of workflowTexts(issue))
+    for (const match of text.matchAll(buildMarker)) {
+      const build = decoded(match[1]);
+      if (build !== null)
+        latest.set(build, match[2]);
+    }
   return latest;
 };
 var titledBuilds = (title) => title.match(/^Google Sheets build (.+) needs attention$/)?.[1].split(", ") ?? [];
@@ -2348,7 +2364,7 @@ function planIssue(report, issues) {
       return { action: "none", ...reused, reason: `issue #${issue.number} already holds these findings` };
     return { action: "comment", ...reused, builds: changed };
   }
-  const latest = [issue.body ?? "", ...(issue.comments ?? []).map((comment) => comment.body ?? "")].flatMap((text) => [...text.matchAll(digestMarker)].map((found) => found[1])).at(-1);
+  const latest = workflowTexts(issue).flatMap((text) => [...text.matchAll(digestMarker)].map((found) => found[1])).at(-1);
   if (latest === digest)
     return { action: "none", ...reused, reason: `issue #${issue.number} already holds this report` };
   return { action: "comment", ...reused };
