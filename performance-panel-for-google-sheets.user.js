@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Performance Panel for Google Sheets
 // @namespace    urn:sheets-scope:userscript
-// @version      0.3.23
+// @version      0.3.24
 // @description  Нативная панель производительности Google Таблиц: пересчёт листа и медленные ячейки.
 // @match        https://docs.google.com/spreadsheets/*
 // @run-at       document-start
@@ -298,15 +298,23 @@
 		"Расчёт не запущен.": "The calculation did not start.",
 		"Ожидаем раннего подключения к вычислениям…": "Waiting to connect to the calculation engine…",
 		"Результаты ещё не получены.": "No results yet.",
-		"Раннее подключение пропущено. Перезагрузите таблицу после обновления скрипта.": "The script started too late. Reload the spreadsheet after updating the script.",
 		"Worker недоступен в контексте страницы.": "Worker is not available on this page.",
-		"Google изменил код обвязки Worker. Замеры включены: Worker принят по отпечатку пути сообщений, движок не сверён.": "Google changed the Worker wrapper code. Timings are on: the Worker was accepted by the fingerprint of its message path, and its engine has not been checked.",
-		"Google изменил Worker. Нужна новая проверка совместимости.": "Google changed its Worker. A new compatibility check is needed.",
-		"Google изменил Worker: код обвязки отличается от проверенного. Нужна новая проверка совместимости.": "Google changed its Worker: the wrapper code differs from the checked one. A new compatibility check is needed.",
-		"Не удалось проверить новый Worker Google ({reason}). Замеры не включены.": "Could not check Google’s new Worker ({reason}). Measurements stay off.",
-		"fetch недоступен": "fetch is unavailable",
-		"истекло время ожидания": "timed out",
-		"Изменилась схема bootstrap Worker.": "The Worker startup format changed.",
+		"Worker вычислений Google не найден: раннее подключение пропущено. Перезагрузите таблицу после обновления скрипта.": "Google’s calculation Worker was not found: the script started too late. Reload the spreadsheet after updating the script.",
+		"Worker вычислений Google найден, но команда его запуска не найдена. Таймеры не включены; итоги фаз показаны, если Google их присылает.": "Google’s calculation Worker was found, but not its start command. Timers are off; stage totals are shown if Google sends them.",
+		"Google изменил формат запуска Worker. Таймеры не включены, сообщение передано без изменений.": "Google changed the Worker start format. Timers are off; the message was passed on unchanged.",
+		"Worker Google не ответил после включения таймеров. При следующей загрузке таблица запустится без них. Перезагрузите таблицу.": "Google’s Worker did not respond after timers were turned on. The next load will start without them. Reload the spreadsheet.",
+		"Worker Google не ответил после включения таймеров. Браузер не дал сохранить отметку, поэтому после перезагрузки таймеры включатся снова; если сбой повторится, отключите скрипт. Перезагрузите таблицу.": "Google’s Worker did not respond after timers were turned on. The browser did not let the script save a note, so the timers turn on again after a reload; if the failure repeats, turn the script off. Reload the spreadsheet.",
+		"Таймеры ячеек временно не включаются: при прошлой загрузке Worker Google не ответил после их включения. Итоги фаз показаны, если Google их присылает.": "Cell timers stay off for now: on an earlier load Google’s Worker did not respond after they were turned on. Stage totals are shown if Google sends them.",
+		"Строгий режим: Worker Google сверён. Перезагрузите таблицу, чтобы включить таймеры ячеек.": "Strict mode: Google’s Worker is verified. Reload the spreadsheet to turn on cell timers.",
+		"Строгий режим: Worker Google ещё не сверён, таймеры ячеек не включены. Если сверка пройдёт, они включатся после перезагрузки таблицы.": "Strict mode: Google’s Worker is not verified yet, so cell timers are off. If verification passes, they turn on after a reload.",
+		"Google обновил вычисления. Worker сверён: код обвязки совпал с проверенным офлайн.": "Google updated its calculation engine. The Worker is verified: its wrapper code matches an offline-checked one.",
+		"Google обновил вычисления. Код обвязки Worker изменился, но путь сообщений совпал с проверенным офлайн.": "Google updated its calculation engine. The Worker’s wrapper code changed, but its message path matches an offline-checked one.",
+		"Google обновил вычисления. Замеры включены: формат запуска и результатов проверен в браузере, офлайн-сверка Worker ещё не проведена.": "Google updated its calculation engine. Timings are on: the start and result formats were checked in the browser; the Worker has not been verified offline yet.",
+		"Данные Worker не прошли проверку ({reason}). Новые числа скрыты, прошлый результат помечен устаревшим.": "Worker data failed a check ({reason}). The new numbers are hidden and the previous result is marked stale.",
+		"Таймеры ячеек не включились — видны только итоги фаз.": "Cell timers did not turn on — only stage totals are shown.",
+		"Строгий режим": "Strict mode",
+		"Таймеры ячеек включаются только для Worker Google, сверенного офлайн. После переключения таблица перезагрузится.": "Cell timers turn on only for a Google Worker verified offline. The spreadsheet reloads after you switch.",
+		"устарел": "stale",
 		"Настройка замеров недоступна: браузер запретил localStorage.": "Measurement settings are unavailable: the browser blocked localStorage.",
 		"Откройте Google-таблицу.": "Open a Google spreadsheet.",
 		"Откройте Google Таблицу.": "Open a Google spreadsheet.",
@@ -317,7 +325,6 @@
 		"Размеры листов изменились или недоступны.": "Sheet sizes changed or are unavailable.",
 		"Размер книги превышает известный лимит; счётчик требует проверки.": "The spreadsheet exceeds the known limit; the counter needs checking.",
 		"Счётчик ячеек недоступен.": "The cell counter is unavailable.",
-		"Версии страницы и Worker различаются. Нужна проверка совместимости.": "The page and Worker versions differ. A compatibility check is needed.",
 		"Сумма фаз и максимумы ячеек с раннего подключения к Worker. Пропущенные результаты не восстанавливаются.": "Stage totals and cell maximums since the script connected to the Worker. Missed results are not recovered.",
 		"Дождитесь текущего расчёта Sheets.": "Wait for the current Sheets calculation to finish.",
 		"Выберите существующий лист.": "Pick an existing sheet.",
@@ -1054,6 +1061,247 @@
 			}
 		}
 	];
+	var STARTUP = 17;
+	var objectTag = Object.prototype.toString;
+	var plain = (value) => Reflect.apply(objectTag, value, []) === "[object Object]";
+	var nonNeg = (value) => typeof value === "number" && Number.isFinite(value) && value >= 0;
+	var nonNegInt = (value) => Number.isSafeInteger(value) && value >= 0;
+	function parseFlags(text) {
+		try {
+			return JSON.parse(text);
+		} catch {
+			return;
+		}
+	}
+	function inspectBootstrap(message) {
+		try {
+			return inspect(message);
+		} catch {
+			return { kind: "other" };
+		}
+	}
+	function inspect(message) {
+		if (!Array.isArray(message)) return { kind: "other" };
+		const data = message[1];
+		if (message[0] !== 6) {
+			const flags = plain(data) && plain(data.flags) && typeof data.flags.ritz_ef === "string" ? parseFlags(data.flags.ritz_ef) : void 0;
+			return plain(flags) && typeof flags.fept === "boolean" ? {
+				kind: "bootstrap",
+				ok: false,
+				reason: "protocol-changed"
+			} : { kind: "other" };
+		}
+		if (!plain(data) || !plain(data.flags)) return {
+			kind: "bootstrap",
+			ok: false,
+			reason: "bootstrap-flags-missing"
+		};
+		const text = data.flags.ritz_ef;
+		if (typeof text !== "string") return {
+			kind: "bootstrap",
+			ok: false,
+			reason: "ritz_ef-missing"
+		};
+		const flags = parseFlags(text);
+		if (flags === void 0) return {
+			kind: "bootstrap",
+			ok: false,
+			reason: "ritz_ef-not-json"
+		};
+		if (!plain(flags)) return {
+			kind: "bootstrap",
+			ok: false,
+			reason: "ritz_ef-not-object"
+		};
+		if (typeof flags.fept !== "boolean") return {
+			kind: "bootstrap",
+			ok: false,
+			reason: "fept-missing"
+		};
+		return {
+			kind: "bootstrap",
+			ok: true,
+			fept: flags.fept,
+			flags,
+			text
+		};
+	}
+	function withFept(text, flags) {
+		if (text.match(/"fept"\s*:\s*(?:true|false)/g)?.length === 1) {
+			const edited = text.replace(/("fept"\s*:\s*)(?:true|false)/, "$1true");
+			if (parseFlags(edited)?.fept === true) return edited;
+		}
+		return JSON.stringify({
+			...flags,
+			fept: true
+		});
+	}
+	function rewriteBootstrap(postArgs, inspected) {
+		const message = postArgs[0], forwarded = postArgs.slice();
+		forwarded[0] = message.slice();
+		forwarded[0][1] = {
+			...message[1],
+			flags: {
+				...message[1].flags,
+				ritz_ef: withFept(inspected.text, inspected.flags)
+			}
+		};
+		return forwarded;
+	}
+	function checkStats(stats, ctx = {}) {
+		const hard = /* @__PURE__ */ new Set(), soft = /* @__PURE__ */ new Set();
+		let cells = 0, sum = 0;
+		if (!Array.isArray(stats) || stats[10] != null && !Array.isArray(stats[10])) return {
+			verdict: "suspect",
+			hard: ["shape"],
+			soft: [],
+			cells,
+			phases: 0
+		};
+		const phases = stats[10] ?? [], seen = /* @__PURE__ */ new Set();
+		for (const phase of phases) {
+			if (!Array.isArray(phase) || phase[11] != null && !Array.isArray(phase[11])) {
+				hard.add("shape");
+				continue;
+			}
+			const type = phase[1], elapsed = phase[2];
+			if (!Number.isSafeInteger(type) || type < 1) hard.add("phase-type");
+			else if (seen.has(type)) hard.add("phase-type-duplicate");
+			else seen.add(type);
+			if (type > 6) soft.add("phase-type-new");
+			if (elapsed != null && !nonNeg(elapsed)) hard.add("phase-ms");
+			if (nonNeg(elapsed)) {
+				sum += elapsed;
+				if (!Number.isInteger(elapsed)) soft.add("ms-fraction");
+			}
+			for (const field of [4, 5]) if (phase[field] != null && !nonNegInt(phase[field])) hard.add("phase-count");
+			const list = phase[11] ?? [];
+			if (list.length > 10) soft.add("top-longer");
+			let cellSum = 0;
+			for (const item of list) {
+				cells++;
+				if (!Array.isArray(item) || item[2] != null && !Array.isArray(item[2])) {
+					hard.add("shape");
+					continue;
+				}
+				const ms = item[1], coord = item[2];
+				if (ms != null && !nonNeg(ms)) hard.add("cell-ms");
+				if (nonNeg(ms)) {
+					cellSum += ms;
+					if (!Number.isInteger(ms)) soft.add("ms-fraction");
+					if (nonNeg(elapsed) && ms > elapsed + 1) hard.add("cell-longer-than-phase");
+				}
+				if (coord != null && (typeof coord[1] !== "string" || !nonNegInt(coord[2]) || !nonNegInt(coord[3]))) hard.add("coord");
+			}
+			if (nonNeg(elapsed) && cellSum > elapsed + list.length) soft.add("cells-sum-exceeds-phase");
+		}
+		if (nonNeg(ctx.windowMs) && sum > ctx.windowMs + 50) soft.add("longer-than-page-window");
+		return {
+			verdict: hard.size ? "suspect" : "ok",
+			hard: [...hard],
+			soft: [...soft],
+			cells,
+			phases: phases.length
+		};
+	}
+	function createEffectiveness(K = 3) {
+		let state = "pending", misses = 0;
+		return {
+			observe(stats) {
+				if (state === "effective" || !Array.isArray(stats?.[10])) return state;
+				for (const phase of stats[10]) {
+					if (!Array.isArray(phase)) continue;
+					if ((phase[11]?.length ?? 0) > 0) {
+						state = "effective";
+						return state;
+					}
+					if (phase[1] === 1 && nonNegInt(phase[5]) && phase[5] > 0) misses++;
+				}
+				if (misses >= K) state = "ineffective";
+				return state;
+			},
+			get state() {
+				return state;
+			}
+		};
+	}
+	function createLiveness({ setTimeout, clearTimeout, now }, { timeoutMs = 15e3, onChange } = {}) {
+		let state = "idle", reason = null, startedAt = null, settledAt = null, timer = null;
+		const read = () => ({
+			state,
+			reason,
+			startedAt,
+			settledAt
+		});
+		const late = () => state === "failed" && reason === "timeout";
+		function settle(next, why = null) {
+			if (state !== "pending" && !(next === "alive" && late())) return read();
+			clearTimeout(timer);
+			timer = null;
+			state = next;
+			reason = why;
+			settledAt = now();
+			const snapshot = read();
+			onChange?.(snapshot);
+			return snapshot;
+		}
+		return {
+			start() {
+				if (state !== "idle") return read();
+				state = "pending";
+				startedAt = now();
+				timer = setTimeout(() => settle("failed", "timeout"), timeoutMs);
+				const snapshot = read();
+				onChange?.(snapshot);
+				return snapshot;
+			},
+			observe(message) {
+				if (state !== "pending" && !late() || !Array.isArray(message) || !plain(message[1])) return read();
+				if (message[0] === 1) return settle("alive");
+				if (message[0] !== STARTUP) return read();
+				const failures = message[1].instantiateFailureCount;
+				return failures == null || nonNegInt(failures) ? settle("alive") : read();
+			},
+			fail(why = "worker-error") {
+				return settle("failed", why);
+			},
+			stop() {
+				if (state !== "pending") return read();
+				clearTimeout(timer);
+				timer = null;
+				state = "stopped";
+				return read();
+			},
+			read
+		};
+	}
+	var skipKey = (host) => `sheets-scope-userscript:skip-fept:${host}`;
+	var dayMs = 864e5;
+	function readSkip(storage, host, now) {
+		try {
+			const record = JSON.parse(storage.getItem(skipKey(host)));
+			return Number.isFinite(record?.until) && record.until > now ? { until: record.until } : null;
+		} catch {
+			return null;
+		}
+	}
+	function writeSkip(storage, host, now, days = 7) {
+		const record = { until: now + days * dayMs };
+		try {
+			storage.setItem(skipKey(host), JSON.stringify(record));
+			return record;
+		} catch {
+			return null;
+		}
+	}
+	function clearSkip(storage, host) {
+		try {
+			storage.removeItem(skipKey(host));
+			return true;
+		} catch {
+			return false;
+		}
+	}
 	//#endregion
 	//#region userscript/src/worker-results.js
 	function decodeWorkerStats(wire) {
@@ -1093,12 +1341,24 @@
 		}];
 	}
 	function createWorkerResults(now = Date.now) {
-		let latest = null, sequence = 0, since = null, error = null;
-		let experimental = null;
+		let latest = null, sequence = 0, since = null, error = null, errorAt = null, trust = null;
+		let experimental = null, effectiveness = null;
 		const experimentalSignals = {};
 		const top = createSessionTop(), totals = /* @__PURE__ */ new Map();
+		function reject(reason) {
+			if (latest) latest = {
+				...latest,
+				stale: true
+			};
+			if (experimental) experimental = {
+				...experimental,
+				stale: true
+			};
+			error = reason;
+			errorAt = now();
+		}
 		return {
-			receive(message, experimentalSupported = false, engineVerified = true) {
+			receive(message, experimentalSupported = false, engineVerified = true, context = null) {
 				if (experimentalSupported) {
 					const signal = decodeExperimentalSignal(message);
 					if (signal) experimentalSignals[signal.kind] = {
@@ -1106,11 +1366,35 @@
 						receivedAt: now()
 					};
 				}
-				if (!Array.isArray(message) || message[0] !== 1 || message[1]?.["1"] !== true || message[1]?.["6"] == null) return;
+				if (!Array.isArray(message) || message[0] !== 1 || message[1]?.["1"] !== true) return;
 				try {
+					const wire = message[1]["6"];
+					if (wire == null) return;
+					const check = checkStats(wire);
+					trust = {
+						verdict: check.verdict,
+						hard: check.hard,
+						soft: check.soft
+					};
+					if (check.verdict !== "ok") {
+						reject(t("Данные Worker не прошли проверку ({reason}). Новые числа скрыты, прошлый результат помечен устаревшим.", { reason: check.hard.join(", ") }));
+						return;
+					}
+					let data;
+					try {
+						data = decodeWorkerStats(wire);
+					} catch (failure) {
+						trust = {
+							verdict: "suspect",
+							hard: ["decode"],
+							soft: check.soft
+						};
+						reject(failure.message);
+						return;
+					}
 					if (experimentalSupported) try {
 						experimental = {
-							...decodeExperimentalStats(message[1]["6"]),
+							...decodeExperimentalStats(wire),
 							engineVerified,
 							updatedAt: now()
 						};
@@ -1124,7 +1408,7 @@
 							updatedAt: now()
 						};
 					}
-					const data = decodeWorkerStats(message[1]["6"]);
+					effectiveness = context?.timersRequested && context.effectiveness ? context.effectiveness.observe(wire) : null;
 					if (!data.phases.length) return;
 					const updatedAt = now();
 					since ??= updatedAt;
@@ -1132,7 +1416,8 @@
 						...data,
 						updatedAt,
 						sequence: ++sequence,
-						breakdown: breakdown(data.phases)
+						breakdown: breakdown(data.phases),
+						stale: false
 					};
 					top.add(data.observations);
 					for (const phase of data.phases) {
@@ -1148,8 +1433,9 @@
 						});
 					}
 					error = null;
+					errorAt = null;
 				} catch (failure) {
-					error = failure.message;
+					reject(failure.message);
 				}
 			},
 			read() {
@@ -1160,9 +1446,13 @@
 						observations: [],
 						updatedAt: null,
 						sequence,
-						breakdown: breakdown([])
+						breakdown: breakdown([]),
+						stale: false
 					},
 					error,
+					errorAt,
+					trust,
+					effectiveness,
 					experimental,
 					experimentalSignals,
 					session: {
@@ -1447,17 +1737,14 @@
 		}
 		return found;
 	}
-	async function anchoredGlueDigest(text) {
-		let tokens, list;
-		try {
-			tokens = plainArrows(scan(String(text).replace(/^\uFEFF/, "")).tokens);
-			list = statements(tokens);
-		} catch (error) {
-			return {
-				sha256: null,
-				missing: [`scan: ${error.message}`]
-			};
-		}
+	function read(text) {
+		const tokens = plainArrows(scan(String(text).replace(/^\uFEFF/, "")).tokens);
+		return {
+			tokens,
+			list: statements(tokens)
+		};
+	}
+	function anchorGroups(tokens, list) {
 		const groups = {
 			execMsg: [],
 			onmessage: [],
@@ -1465,10 +1752,9 @@
 			wbParam: [],
 			instantiate: [],
 			loadData: [],
-			ready: [],
-			imports: []
+			ready: []
 		};
-		const props = [];
+		const paramMap = [], props = [];
 		let tailFrom = -1;
 		list.forEach((range, index) => {
 			const [from, to] = range, found = facts(tokens, from, to);
@@ -1476,14 +1762,35 @@
 			if (found.onmessage) groups.onmessage.push(range);
 			if (found.postArray) groups.postMsg.push(range);
 			if (found.members.has("_workerInitializationParamMap") || found.strings.has("wb") && found.members.has("search")) groups.wbParam.push(range);
-			if (tailFrom < 0 && found.members.has("_workerInitializationParamMap")) tailFrom = index;
+			if (found.members.has("_workerInitializationParamMap")) {
+				paramMap.push(range);
+				if (tailFrom < 0) tailFrom = index;
+			}
 			if (found.strings.has("string.consts") || found.strings.has("js-prototypes")) groups.instantiate.push(range);
 			if (found.members.has("setInitialLoadData")) groups.loadData.push(range);
 			if (isReadyCall(tokens, range)) groups.ready.push(range);
 			props.push(...found.props);
 		});
+		return {
+			groups,
+			paramMap,
+			props,
+			tailFrom
+		};
+	}
+	async function anchoredGlueDigest(text) {
+		let tokens, list;
+		try {
+			({tokens, list} = read(text));
+		} catch (error) {
+			return {
+				sha256: null,
+				missing: [`scan: ${error.message}`]
+			};
+		}
+		const { groups, props, tailFrom } = anchorGroups(tokens, list);
 		const lines = {}, missing = [];
-		for (const [name, ranges] of Object.entries(groups)) if (name !== "imports") lines[name] = ranges.map(([from, to]) => shape(tokens.slice(from, to)));
+		for (const [name, ranges] of Object.entries(groups)) lines[name] = ranges.map(([from, to]) => shape(tokens.slice(from, to)));
 		const declared = props.some(({ value: [from, to] }) => to - from === 1 && isName(tokens[from])) ? declarations(tokens, list) : null;
 		lines.imports = props.map(({ key, value: [from, to] }) => {
 			let range = [from, to];
@@ -1507,6 +1814,208 @@
 		};
 		return {
 			sha256: await sha256(Object.entries(lines).map(([name, items]) => name + "\n" + items.join("\n")).join("\n")),
+			missing
+		};
+	}
+	var isClose = (token) => token === ")" || token === "]" || token === "}";
+	function matchingBack(tokens, close) {
+		for (let i = close, depth = 0; i >= 0; i--) if (isClose(tokens[i])) depth++;
+		else if (closers.has(tokens[i]) && !--depth) return i;
+		return -1;
+	}
+	function innermost(tokens, from, to, at) {
+		let start = from, end = to;
+		for (let i = at - 1, depth = 0; i >= from; i--) {
+			const token = tokens[i];
+			if (isClose(token)) {
+				if (token === "}" && !depth) {
+					start = i + 1;
+					break;
+				}
+				depth++;
+			} else if (closers.has(token)) {
+				if (depth) depth--;
+				else if (token === "{") {
+					start = i + 1;
+					break;
+				}
+			} else if (token === ";" && !depth) {
+				start = i + 1;
+				break;
+			}
+		}
+		for (let i = at, depth = 0; i < to; i++) {
+			const token = tokens[i];
+			if (closers.has(token)) depth++;
+			else if (isClose(token)) {
+				if (depth) depth--;
+				else if (token === "}") {
+					end = i;
+					break;
+				}
+			} else if (token === ";" && !depth) {
+				end = i + 1;
+				break;
+			}
+		}
+		return [start, end];
+	}
+	function callees(tokens, [from, to], declared, names) {
+		for (let i = from; i < to; i++) {
+			const token = tokens[i];
+			if (token === "throw") {
+				for (let depth = 0; i < to; i++) if (closers.has(tokens[i])) depth++;
+				else if (isClose(tokens[i])) {
+					if (!depth) break;
+					depth--;
+				} else if (tokens[i] === ";" && !depth) break;
+			} else if (isName(token) && tokens[i - 1] !== "." && declared.has(token) && (tokens[i + 1] === "(" || tokens[i - 1] === "new")) names.add(token);
+		}
+	}
+	var blockHeads = /* @__PURE__ */ new Set([
+		"if",
+		"for",
+		"while",
+		"with"
+	]);
+	var declarationHeads = /* @__PURE__ */ new Set([
+		"var",
+		"let",
+		"const",
+		"function",
+		"class"
+	]);
+	var dropSemicolons = (tokens) => tokens.filter((token, i) => token !== ";" || tokens[i + 1] !== "}");
+	function canon(input) {
+		let tokens = [];
+		for (let i = 0; i < input.length; i++) {
+			tokens.push(input[i]);
+			if (input[i] !== "new" || !isName(input[i + 1])) continue;
+			let j = i + 1;
+			tokens.push(input[j]);
+			while (input[j + 1] === "." && isName(input[j + 2])) {
+				tokens.push(".", input[j + 2]);
+				j += 2;
+			}
+			if (input[j + 1] !== "(") tokens.push("(", ")");
+			i = j;
+		}
+		tokens = dropSemicolons(tokens);
+		for (let changed = true; changed;) {
+			changed = false;
+			for (let k = 0; k < tokens.length; k++) {
+				if (tokens[k] !== "{") continue;
+				const previous = tokens[k - 1];
+				let unwrap = previous === "else" || previous === "do";
+				if (previous === ")") {
+					const open = matchingBack(tokens, k - 1);
+					unwrap = open > 0 && blockHeads.has(tokens[open - 1]);
+				}
+				const end = unwrap ? matching(tokens, k) : -1;
+				if (end < 0) continue;
+				const body = tokens.slice(k + 1, end);
+				if (!body.length || declarationHeads.has(body[0])) continue;
+				let single = true;
+				for (let m = 0, depth = 0; m < body.length && single; m++) if (closers.has(body[m])) depth++;
+				else if (isClose(body[m])) depth--;
+				else if (body[m] === ";" && !depth) single = false;
+				if (!single) continue;
+				tokens = dropSemicolons([
+					...tokens.slice(0, k),
+					...body,
+					";",
+					...tokens.slice(end + 1)
+				]);
+				changed = true;
+				break;
+			}
+		}
+		return tokens;
+	}
+	function canonicalShape(tokens, [from, to]) {
+		const canonical = canon(tokens.slice(from, to));
+		if (canonical.at(-1) === ";") canonical.pop();
+		return shape(canonical);
+	}
+	var payloadNames = /* @__PURE__ */ new Set([
+		"setInitialLoadData",
+		"initialize",
+		"performanceTimingEntries",
+		"performanceTimeOrigin",
+		"instantiateFailureCount",
+		"latencyCheckpointEntries",
+		"latencyDurationEntries"
+	]);
+	var singleParts = /* @__PURE__ */ new Set([
+		"execMsg",
+		"onmessage",
+		"postMsg",
+		"ready",
+		"postImport"
+	]);
+	var quotedWb = /* @__PURE__ */ new Set(["\"wb\"", "'wb'"]);
+	async function canonicalGlueDigest(text) {
+		let tokens, list;
+		try {
+			({tokens, list} = read(text));
+		} catch (error) {
+			return {
+				sha256: null,
+				missing: [`scan: ${error.message}`]
+			};
+		}
+		const { groups, paramMap, props } = anchorGroups(tokens, list);
+		const declared = declarations(tokens, list), missing = [];
+		const seen = /* @__PURE__ */ new Set(), wbReads = [], loadCalls = [], payload = [], latency = [];
+		const once = (into, range) => {
+			const key = range.join(":");
+			if (!seen.has(key)) {
+				seen.add(key);
+				into.push(range);
+			}
+		};
+		for (const [from, to] of groups.wbParam) for (let i = from; i < to; i++) if (quotedWb.has(tokens[i])) wbReads.push(innermost(tokens, from, to, i));
+		for (const [from, to] of groups.loadData) for (let i = from; i < to; i++) {
+			if (tokens[i] === "setInitialLoadData" && tokens[i - 1] === ".") loadCalls.push(innermost(tokens, from, to, i));
+			if (payloadNames.has(tokens[i])) once(payload, innermost(tokens, from, to, i));
+		}
+		for (const [from, to] of list) for (let i = from + 1; i < to - 2; i++) if (tokens[i - 1] === "[" && tokens[i + 1] === "]" && tokens[i + 2] === "=" && tokens[i + 3] !== "=" && /^1\d{5}$/.test(tokens[i])) once(latency, innermost(tokens, from, to, i));
+		const names = /* @__PURE__ */ new Set();
+		for (const range of [
+			...groups.execMsg,
+			...groups.onmessage,
+			...groups.postMsg,
+			...loadCalls,
+			...groups.ready
+		]) callees(tokens, range, declared, names);
+		const S = (range) => canonicalShape(tokens, range);
+		const postImport = props.filter(({ key }) => /\.postMessageNativeJs$/.test(key)).map(({ key, value: [from, to] }) => {
+			const range = to - from === 1 && isName(tokens[from]) ? declared.get(tokens[from]) : [from, to];
+			if (!range) missing.push(`postImport: ${key} is bound to an unknown ${tokens[from]}`);
+			return range ? key + "=" + S(range) : key;
+		});
+		const parts = {
+			execMsg: groups.execMsg.map(S),
+			onmessage: groups.onmessage.map(S),
+			postMsg: groups.postMsg.map(S),
+			wbParam: [...paramMap, ...wbReads].map(S),
+			loadData: payload.map(S),
+			ready: groups.ready.map(S),
+			importKeys: props.map(({ key }) => key).sort(),
+			postImport,
+			callees: [...names].map((name) => S(declared.get(name))),
+			latency: latency.map(S).sort()
+		};
+		for (const [name, items] of Object.entries(parts)) {
+			const count = items.length;
+			if (singleParts.has(name) ? count !== 1 : !count) missing.push(count ? `${name} x${count}, expected 1` : name);
+		}
+		if (missing.length) return {
+			sha256: null,
+			missing
+		};
+		return {
+			sha256: await sha256(Object.entries(parts).map(([name, items]) => name + "\n" + items.join("\n")).join("\n")),
 			missing
 		};
 	}
@@ -1588,8 +2097,12 @@
 			evidence: "research/native-build-2026-10-13-manifest.json"
 		}
 	];
+	var verifiedCanonical = [{
+		sha256: "821b503e3c4e2efb443769a959869b866b7a8e0be1de587fdc73eef8d35238ac",
+		evidence: "research/native-build-ggV6-manifest.json, research/native-build-2026-09-23-manifest.json, research/native-build-2026-09-25-manifest.json, research/native-build-2026-09-29-manifest.json, research/native-build-2026-09-29-firefox-manifest.json, research/native-build-2026-10-06-manifest.json, research/native-build-2026-10-06-Mm_qTNRMLew-manifest.json, research/native-build-2026-10-10-manifest.json, research/native-build-2026-10-13-manifest.json"
+	}];
 	var extensionHost = workers.find((worker) => worker.extension).host;
-	var workerHostOf = (pathname) => pathname.match(/\/\d+-calcworkerhost[^/]*\.js$/)?.[0] ?? null;
+	var workerHostOf = (pathname) => pathname.match(/\/\d+-calcworker[^/]*\.js$/)?.[0] ?? null;
 	function engineWasmOf(url) {
 		try {
 			const wasm = JSON.parse(atob(url.searchParams.get("wb"))).findLast((item) => typeof item === "string");
@@ -1607,28 +2120,42 @@
 			engineVerified
 		};
 	}
-	async function verifyWorkerGlue(text, host, { glue: glueRows = verifiedGlue, anchors: anchorRows = verifiedAnchors } = {}) {
-		if (typeof text !== "string") return null;
-		const digest = await sha256(text.replace(/[0-9]+/g, "0"));
-		if (glueRows.some((glue) => glue.sha256 === digest)) return {
-			host,
-			stats: true,
-			counters: true,
-			engineVerified: false,
-			verification: "glue"
+	var glueDigest = (text) => sha256(text.replace(/[0-9]+/g, "0"));
+	async function labelWorker(text, url, { glue: glueRows = verifiedGlue, anchors: anchorRows = verifiedAnchors, canonical: canonicalRows = verifiedCanonical } = {}) {
+		const readable = typeof text === "string";
+		const attempt = async (digest) => {
+			try {
+				return readable ? await digest() : null;
+			} catch {
+				return null;
+			}
 		};
-		const { sha256: anchored } = await anchoredGlueDigest(text);
-		return anchored && anchorRows.some((row) => row.sha256 === anchored) ? {
-			host,
-			stats: true,
-			counters: true,
-			engineVerified: false,
-			verification: "anchors"
-		} : null;
+		const digests = {
+			glue: await attempt(() => glueDigest(text)),
+			anchors: await attempt(async () => (await anchoredGlueDigest(text)).sha256),
+			canonical: await attempt(async () => (await canonicalGlueDigest(text)).sha256)
+		};
+		const known = (rows, digest) => digest !== null && rows.some((row) => row.sha256 === digest);
+		return {
+			verification: url && workerProfile(url) ? "listed" : known(glueRows, digests.glue) ? "glue" : known(anchorRows, digests.anchors) ? "anchors" : known(canonicalRows, digests.canonical) ? "canonical" : null,
+			digests
+		};
 	}
 	//#endregion
 	//#region userscript/src/timing.js
 	var settingPrefix = "sheets-scope-userscript:enabled:";
+	var strictKey = "sheets-scope-userscript:strict-worker";
+	var verifiedPrefix = "sheets-scope-userscript:verified-host:";
+	var rememberedKinds = [
+		"glue",
+		"anchors",
+		"canonical"
+	];
+	var windowPosts = 3;
+	var windowMs = 5e3;
+	var labelTimeoutMs = 1e4;
+	var startupMs = 3e4;
+	var expired = Symbol("expired");
 	function bookIdFromURL(url) {
 		const parsed = new URL(url);
 		return parsed.origin === "https://docs.google.com" ? /^\/spreadsheets\/(?:u\/\d+\/)?d\/([\w-]+)\/edit\/?$/.exec(parsed.pathname)?.[1] ?? null : null;
@@ -1643,6 +2170,32 @@
 			}
 		};
 	}
+	function strictPreference(storage) {
+		return {
+			enabled: () => storage.getItem(strictKey) === "1",
+			set(value) {
+				if (value) storage.setItem(strictKey, "1");
+				else storage.removeItem(strictKey);
+			}
+		};
+	}
+	function rememberedLabel(storage, host) {
+		try {
+			const kind = storage?.getItem(verifiedPrefix + host);
+			return rememberedKinds.includes(kind) ? kind : null;
+		} catch {
+			return null;
+		}
+	}
+	function rememberLabel(storage, host, kind) {
+		try {
+			if (rememberedKinds.includes(kind)) storage?.setItem(verifiedPrefix + host, kind);
+			else storage?.removeItem(verifiedPrefix + host);
+		} catch {}
+	}
+	function candidateHost(url) {
+		return url.protocol === "https:" && url.origin === "https://docs.google.com" ? workerHostOf(url.pathname) : null;
+	}
 	function timingReason(setup) {
 		if (setup.status === "disabled") return t("Замеры в этой таблице выключены. Нажмите «Подключить и перезагрузить».");
 		if (setup.status === "waiting") return t("Вычисления Google ещё не подключены. Дождитесь загрузки таблицы и повторите.");
@@ -1650,88 +2203,306 @@
 		if (setup.error) return setup.error;
 		return t("Нет подключения к вычислениям Google. Перезагрузите таблицу.");
 	}
-	function installTiming(win, enabled) {
-		const nativeWorker = win.Worker, restores = /* @__PURE__ */ new Set(), listeners = /* @__PURE__ */ new Set();
+	function livenessReason(record) {
+		if (record.skip) return t("Worker Google не ответил после включения таймеров. При следующей загрузке таблица запустится без них. Перезагрузите таблицу.");
+		if (!record.started) return t("Нет подключения к вычислениям Google. Перезагрузите таблицу.");
+		return t("Worker Google не ответил после включения таймеров. Браузер не дал сохранить отметку, поэтому после перезагрузки таймеры включатся снова; если сбой повторится, отключите скрипт. Перезагрузите таблицу.");
+	}
+	function passiveReason(record) {
+		if (record.bootstrap === "skip") return record.skip?.source === "stored" ? t("Таймеры ячеек временно не включаются: при прошлой загрузке Worker Google не ответил после их включения. Итоги фаз показаны, если Google их присылает.") : livenessReason(record);
+		if (record.bootstrap === "strict") return record.label.verification ? t("Строгий режим: Worker Google сверён. Перезагрузите таблицу, чтобы включить таймеры ячеек.") : t("Строгий режим: Worker Google ещё не сверён, таймеры ячеек не включены. Если сверка пройдёт, они включатся после перезагрузки таблицы.");
+		if (record.bootstrap === "post-failed") return t("Нет подключения к вычислениям Google. Перезагрузите таблицу.");
+		return t("Google изменил формат запуска Worker. Таймеры не включены, сообщение передано без изменений.");
+	}
+	function installTiming(win, enabled, { storage = null, strict = false, now = Date.now } = {}) {
+		const nativeWorker = win.Worker, nativeFetch = win.fetch;
 		const results = createWorkerResults();
-		const initial = {
-			status: enabled ? "waiting" : "disabled",
-			enabledWorkers: 0,
-			error: null
-		};
-		let proxy, observedWorkers = 0, stopped = false, startupTimer, workerHost = null;
-		const nativeFetch = win.fetch;
-		async function verifyHost(href, host) {
-			let timer;
-			try {
-				if (typeof nativeFetch !== "function") throw Error(t("fetch недоступен"));
-				const check = (async () => {
-					const response = await Reflect.apply(nativeFetch, win, [href, {
-						credentials: "same-origin",
-						cache: "force-cache"
-					}]);
-					if (!response?.ok) throw Error(`HTTP ${response?.status}`);
-					return verifyWorkerGlue(await response.text(), host);
-				})();
-				const timeout = new Promise((_, reject) => {
-					timer = win.setTimeout(() => reject(Error(t("истекло время ожидания"))), 1e4);
-				});
-				return await Promise.race([check, timeout]);
-			} catch (error) {
-				initial.status = "unsupported";
-				initial.error = t("Не удалось проверить новый Worker Google ({reason}). Замеры не включены.", { reason: error.message });
-				return null;
-			} finally {
-				win.clearTimeout?.(timer);
-			}
-		}
+		const records = [], restores = /* @__PURE__ */ new Set(), listeners = /* @__PURE__ */ new Set();
+		const later = (fn, ms) => win.setTimeout(fn, ms);
+		const cancel = (id) => win.clearTimeout?.(id);
+		let proxy, stopped = false, startupTimer, startupOver = false, workerHost = null, missed = null, failure = null;
+		const skipWritten = /* @__PURE__ */ new Set(), unstarted = /* @__PURE__ */ new Map();
 		function shared() {
 			if (workerHost && workerHost !== extensionHost) return null;
 			const state = win.__sheetsScopeTimingSetup;
 			return state?.version === 1 && ["waiting", "enabled"].includes(state.status) ? state : null;
 		}
-		function stop() {
-			stopped = true;
-			win.clearTimeout?.(startupTimer);
-			for (const restore of restores) restore();
-			for (const remove of listeners) remove();
-			listeners.clear();
-			if (win.Worker === proxy) win.Worker = nativeWorker;
+		async function label(record, url) {
+			let timer, text = null, error = null;
+			try {
+				if (typeof nativeFetch !== "function") throw Error("fetch unavailable");
+				const read = (async () => {
+					const response = await Reflect.apply(nativeFetch, win, [url.href, {
+						credentials: "same-origin",
+						cache: "force-cache"
+					}]);
+					if (!response?.ok) throw Error(`HTTP ${response?.status}`);
+					return response.text();
+				})();
+				read.catch(() => {});
+				const value = await Promise.race([read, new Promise((resolve) => {
+					timer = later(() => resolve(expired), labelTimeoutMs);
+				})]);
+				if (value === expired) throw Error("timeout");
+				if (typeof value !== "string") throw Error("not text");
+				text = value;
+			} catch (failed) {
+				error = String(failed?.message ?? failed);
+			} finally {
+				cancel(timer);
+			}
+			const { verification, digests } = await labelWorker(text, url);
+			record.label = {
+				state: text === null ? "unavailable" : "done",
+				verification,
+				digests,
+				error
+			};
+			if (text !== null) rememberLabel(storage, record.host, verification);
+		}
+		function listen(worker, type, listener) {
+			worker.addEventListener(type, listener);
+			listeners.add(() => worker.removeEventListener(type, listener));
+		}
+		function wrap(worker, record) {
+			const nativePost = worker.postMessage;
+			if (typeof nativePost !== "function") return;
+			const hadOwn = Object.prototype.hasOwnProperty.call(worker, "postMessage");
+			const skip = readSkip(storage, record.host, now());
+			const allowed = !strict || record.profile !== null || rememberedLabel(storage, record.host) !== null;
+			if (skip) record.skip = {
+				until: skip.until,
+				source: skipWritten.has(record.host) ? "written" : "stored"
+			};
+			let posts = 0, open = true, timer = null;
+			function close() {
+				if (!open) return;
+				open = false;
+				cancel(timer);
+				restores.delete(close);
+				record.bootstrap ??= "not-found";
+				try {
+					if (Object.getOwnPropertyDescriptor(worker, "postMessage")?.value === post) {
+						if (hadOwn) worker.postMessage = nativePost;
+						else delete worker.postMessage;
+					}
+				} catch {}
+				settleStartup();
+			}
+			function post(...postArgs) {
+				if (!open || stopped) return Reflect.apply(nativePost, this, postArgs);
+				posts++;
+				const inspected = inspectBootstrap(postArgs[0]);
+				if (inspected.kind !== "bootstrap") {
+					if (posts >= windowPosts) close();
+					return Reflect.apply(nativePost, this, postArgs);
+				}
+				let forwarded = postArgs;
+				record.bootstrap = !inspected.ok ? inspected.reason : skip ? "skip" : !allowed ? "strict" : "rewrite";
+				if (record.bootstrap === "rewrite") try {
+					forwarded = rewriteBootstrap(postArgs, inspected);
+				} catch {
+					record.bootstrap = "rewrite-failed";
+				}
+				close();
+				let result;
+				try {
+					result = Reflect.apply(nativePost, this, forwarded);
+				} catch (error) {
+					if (forwarded !== postArgs) record.bootstrap = "post-failed";
+					throw error;
+				}
+				if (forwarded !== postArgs) {
+					record.bootstrap = "rewritten";
+					record.rewritten = true;
+					record.liveness.start();
+				}
+				return result;
+			}
+			worker.postMessage = post;
+			restores.add(close);
+			timer = later(close, windowMs);
+		}
+		function track(worker, url, host) {
+			const profile = workerProfile(url);
+			const record = {
+				host,
+				profile,
+				bootstrap: null,
+				rewritten: false,
+				started: false,
+				skip: null,
+				workerErrors: 0,
+				messageErrors: 0,
+				label: profile ? {
+					state: "done",
+					verification: "listed",
+					digests: null,
+					error: null
+				} : {
+					state: "pending",
+					verification: null,
+					digests: null,
+					error: null
+				},
+				effectiveness: createEffectiveness(3),
+				liveness: null,
+				context: null
+			};
+			record.liveness = createLiveness({
+				setTimeout: later,
+				clearTimeout: cancel,
+				now
+			}, { onChange(snapshot) {
+				if (stopped) return;
+				if (snapshot.state === "alive") {
+					if (record.skip?.source === "written" && clearSkip(storage, host)) {
+						skipWritten.delete(host);
+						record.skip = null;
+					}
+					return;
+				}
+				if (snapshot.state !== "failed") return;
+				if (!record.started) {
+					const count = (unstarted.get(host) ?? 0) + 1;
+					unstarted.set(host, count);
+					if (count < 2) return;
+				}
+				const written = writeSkip(storage, host, now());
+				if (written) skipWritten.add(host);
+				record.skip = written ? {
+					until: written.until,
+					source: "written"
+				} : null;
+			} });
+			record.context = {
+				host,
+				effectiveness: record.effectiveness,
+				get timersRequested() {
+					return record.rewritten;
+				}
+			};
+			records.push(record);
+			listen(worker, "message", (event) => {
+				if (event?.isTrusted !== true) return;
+				record.started = true;
+				const message = event.data;
+				record.liveness.observe(message);
+				const counters = profile ? profile.counters : record.label.verification !== null;
+				try {
+					results.receive(message, counters, profile ? profile.engineVerified : false, record.context);
+				} catch {}
+			});
+			listen(worker, "error", (event) => {
+				if (event?.isTrusted !== true) return;
+				record.workerErrors++;
+				record.liveness.fail(record.started ? "worker-error" : "load-error");
+			});
+			listen(worker, "messageerror", (event) => {
+				if (event?.isTrusted === true) record.messageErrors++;
+			});
+			if (!profile) Promise.resolve().then(() => label(record, url)).catch(() => {});
+			if (!shared()) wrap(worker, record);
+		}
+		function primary() {
+			for (let index = records.length - 1; index >= 0; index--) if (records[index].bootstrap !== null && records[index].bootstrap !== "not-found") return records[index];
+			return records.at(-1) ?? null;
+		}
+		const enabledWorkers = () => records.filter((record) => record.rewritten).length;
+		function own(record) {
+			if (failure) return {
+				status: "unsupported",
+				error: failure
+			};
+			if (record?.rewritten) return record.liveness.read().state === "failed" ? {
+				status: "unsupported",
+				error: livenessReason(record)
+			} : {
+				status: "enabled",
+				error: null
+			};
+			if (record && record.bootstrap !== null && record.bootstrap !== "not-found") return {
+				status: "unsupported",
+				error: passiveReason(record)
+			};
+			if (missed === "worker") return {
+				status: "missed",
+				error: t("Worker вычислений Google не найден: раннее подключение пропущено. Перезагрузите таблицу после обновления скрипта.")
+			};
+			if (missed === "bootstrap") return {
+				status: "missed",
+				error: t("Worker вычислений Google найден, но команда его запуска не найдена. Таймеры не включены; итоги фаз показаны, если Google их присылает.")
+			};
+			return {
+				status: enabled ? "waiting" : "disabled",
+				error: null
+			};
+		}
+		function settleStartup() {
+			if (!startupOver || stopped || restores.size || missed) return;
+			const state = own(primary()).status;
+			if (state === "waiting" || state === "disabled" && shared()) missed = records.length ? "bootstrap" : "worker";
 		}
 		function status() {
-			const existing = shared();
-			if (stopped) return {
-				...initial,
-				status: "stopped",
-				observedWorkers,
+			const record = primary(), mine = own(record), existing = shared();
+			const liveness = record ? record.liveness.read() : null;
+			const effectiveness = record?.rewritten ? record.effectiveness.state : null;
+			const details = {
+				observedWorkers: records.length,
 				workerHost,
+				strict,
+				missed,
+				verification: record?.label.verification ?? null,
+				labelState: record?.label.state ?? null,
+				labelError: record?.label.error ?? null,
+				digests: record?.label.digests ?? null,
+				bootstrap: record?.bootstrap ?? null,
+				liveness,
+				effectiveness,
+				confirmed: !!record?.rewritten && (liveness.state === "alive" || effectiveness === "effective"),
+				skip: record?.skip ?? null,
+				workerErrors: record?.workerErrors ?? 0,
+				messageErrors: record?.messageErrors ?? 0
+			};
+			if (stopped) return {
+				...mine,
+				enabledWorkers: enabledWorkers(),
+				...details,
+				status: "stopped",
 				source: "userscript"
 			};
-			if (initial.status === "unsupported" || initial.status === "missed") return {
-				...initial,
-				observedWorkers,
-				workerHost,
+			if (mine.status === "unsupported" || mine.status === "missed") return {
+				...mine,
+				enabledWorkers: enabledWorkers(),
+				...details,
 				source: "userscript"
 			};
 			if (existing) return {
-				status: existing.status === "enabled" && !observedWorkers ? "waiting" : existing.status,
+				...details,
+				status: existing.status === "enabled" && !records.length ? "waiting" : existing.status,
 				enabledWorkers: existing.enabledWorkers,
-				observedWorkers,
-				workerHost,
 				source: "extension",
 				error: existing.error ?? null
 			};
 			return {
-				...initial,
-				observedWorkers,
-				workerHost,
+				...mine,
+				enabledWorkers: enabledWorkers(),
+				...details,
 				source: "userscript"
 			};
 		}
+		function stop() {
+			stopped = true;
+			cancel(startupTimer);
+			for (const restore of restores) restore();
+			for (const remove of listeners) remove();
+			listeners.clear();
+			for (const record of records) record.liveness.stop();
+			if (win.Worker === proxy) win.Worker = nativeWorker;
+		}
 		if (enabled || shared()) {
-			if (typeof nativeWorker !== "function") {
-				initial.status = "unsupported";
-				initial.error = t("Worker недоступен в контексте страницы.");
-			} else {
+			if (typeof nativeWorker !== "function") failure = t("Worker недоступен в контексте страницы.");
+			else {
 				proxy = new Proxy(nativeWorker, { construct(target, args, newTarget) {
 					const worker = Reflect.construct(target, args, newTarget);
 					if (stopped) return worker;
@@ -1741,107 +2512,22 @@
 					} catch {
 						return worker;
 					}
-					const host = url.origin === "https://docs.google.com" ? workerHostOf(url.pathname) : null;
+					const host = candidateHost(url);
 					if (!host) return worker;
-					if (workerHost && workerHost !== host) {
-						initial.status = "unsupported";
-						initial.error = t("Google изменил Worker. Нужна новая проверка совместимости.");
-						return worker;
-					}
 					workerHost = host;
-					let profile = workerProfile(url), pending = null;
 					if (!enabled && !shared()) return worker;
-					const receive = (event) => {
-						if (profile) results.receive(event.data, profile.counters, profile.engineVerified);
-					};
-					worker.addEventListener("message", receive);
-					listeners.add(() => worker.removeEventListener("message", receive));
-					observedWorkers++;
-					if (shared()) return worker;
-					const nativePost = worker.postMessage;
-					const queue = [];
-					let bootstrapped = false;
-					const restore = () => {
-						if (worker.postMessage === post) worker.postMessage = nativePost;
-						restores.delete(restore);
-						for (const item of queue.splice(0)) try {
-							Reflect.apply(nativePost, item.receiver, item.args);
-						} catch {}
-					};
-					if (!profile) pending = verifyHost(url.href, host).then((found) => {
-						profile = found;
-						if (found?.verification) initial.verification = found.verification;
-						if (!found && initial.status !== "unsupported") {
-							initial.status = "unsupported";
-							initial.error = t("Google изменил Worker: код обвязки отличается от проверенного. Нужна новая проверка совместимости.");
-						}
-						const held = queue.splice(0);
-						pending = null;
-						for (const item of held) try {
-							forward(item.receiver, item.args);
-						} catch {}
-						if (!found || bootstrapped) restore();
-					});
-					function post(...postArgs) {
-						if (!pending) return forward(this, postArgs);
-						const options = postArgs[1], transfer = Array.isArray(options) ? options : options?.transfer ?? [];
-						const copy = structuredClone({
-							message: postArgs[0],
-							transfer
-						}, { transfer });
-						queue.push({
-							receiver: this,
-							args: postArgs.length > 1 ? [copy.message, copy.transfer] : [copy.message]
-						});
-					}
-					function forward(receiver, postArgs) {
-						const message = postArgs[0];
-						if (stopped || !profile || !Array.isArray(message) || message[0] !== 6) return Reflect.apply(nativePost, receiver, postArgs);
-						bootstrapped = true;
-						let forwarded = postArgs, adjusted = false;
-						try {
-							const flags = JSON.parse(message[1]?.flags?.ritz_ef);
-							if (typeof flags.fept !== "boolean") throw Error(t("Изменилась схема bootstrap Worker."));
-							forwarded = postArgs.slice();
-							forwarded[0] = message.slice();
-							forwarded[0][1] = {
-								...message[1],
-								flags: {
-									...message[1].flags,
-									ritz_ef: JSON.stringify({
-										...flags,
-										fept: true
-									})
-								}
-							};
-							adjusted = true;
-						} catch (error) {
-							initial.status = "unsupported";
-							initial.error = error.message;
-						}
-						const result = Reflect.apply(nativePost, receiver, forwarded);
-						if (adjusted) {
-							initial.status = "enabled";
-							initial.enabledWorkers++;
-						}
-						restore();
-						return result;
-					}
-					worker.postMessage = post;
-					restores.add(restore);
+					try {
+						track(worker, url, host);
+					} catch {}
 					return worker;
 				} });
 				win.Worker = proxy;
-				startupTimer = win.setTimeout(() => {
-					if (!observedWorkers || !shared() && !initial.enabledWorkers) {
-						for (const restore of restores) restore();
-						if (win.Worker === proxy) win.Worker = nativeWorker;
-						if (initial.status === "waiting" || initial.status === "disabled" && shared()) {
-							initial.status = "missed";
-							initial.error = t("Раннее подключение пропущено. Перезагрузите таблицу после обновления скрипта.");
-						}
-					}
-				}, 3e4);
+				startupTimer = later(() => {
+					if (records.length && (shared() || enabledWorkers())) return;
+					if (win.Worker === proxy) win.Worker = nativeWorker;
+					startupOver = true;
+					settleStartup();
+				}, startupMs);
 			}
 		}
 		return {
@@ -1850,7 +2536,7 @@
 			results: () => results.read(),
 			ready() {
 				const value = status();
-				return value.status === "enabled" && value.enabledWorkers > 0 && observedWorkers > 0;
+				return value.status === "enabled" && value.enabledWorkers > 0 && value.observedWorkers > 0;
 			}
 		};
 	}
@@ -3317,6 +4003,28 @@
 	}
 	//#endregion
 	//#region userscript/src/adapter.js
+	function measurements(timing) {
+		try {
+			return timing.results();
+		} catch (error) {
+			return {
+				available: false,
+				updatedAt: null,
+				sequence: 0,
+				phases: [],
+				observations: [],
+				breakdown: nativeBreakdown(null),
+				error: error.message,
+				errorAt: null,
+				session: {
+					observations: [],
+					breakdown: nativeBreakdown(null),
+					topObservedSince: null,
+					truncated: false
+				}
+			};
+		}
+	}
 	function createAdapter(timing) {
 		const g = globalThis, native = createNativeBindings(g);
 		const verify = native.verify;
@@ -3449,7 +4157,7 @@
 			return !!document.getElementById("t-formula-bar-progress-bar")?.getClientRects().length;
 		}
 		function updateRequest(data, busy) {
-			if (data.error && request?.state === "waiting") request = {
+			if (data.error && request?.state === "waiting" && (data.errorAt == null || data.errorAt >= request.startedAt)) request = {
 				...request,
 				state: "queued-without-measurements",
 				measurementWarning: data.error
@@ -3517,30 +4225,6 @@
 				};
 			}
 		}
-		async function measurements() {
-			try {
-				await verify(["T5h", "Abg"]);
-				const host = timing.status().workerHost;
-				if (host && native.build.workerHost && host !== native.build.workerHost) throw Error(t("Версии страницы и Worker различаются. Нужна проверка совместимости."));
-				return timing.results();
-			} catch (error) {
-				return {
-					available: false,
-					updatedAt: null,
-					sequence: 0,
-					phases: [],
-					observations: [],
-					breakdown: nativeBreakdown(null),
-					error: error.message,
-					session: {
-						observations: [],
-						breakdown: nativeBreakdown(null),
-						topObservedSince: null,
-						truncated: false
-					}
-				};
-			}
-		}
 		function readExperimentalTools() {
 			const result = {
 				latency: {
@@ -3599,7 +4283,7 @@
 			} catch (error) {
 				formulaError = error.message;
 			}
-			const data = await measurements(), list = sheets(), names = new Map(list.map((s) => [s.id, s.name]));
+			const data = measurements(timing), list = sheets(), names = new Map(list.map((s) => [s.id, s.name]));
 			const busy = progress();
 			updateRequest(data, busy);
 			const cache = /* @__PURE__ */ new Map();
@@ -3624,13 +4308,15 @@
 			const session = data.session;
 			const setup = timing.status();
 			return {
-				version: "0.3.23",
+				version: "0.3.24",
 				nativeBuild: native.build.id,
 				bookPath: location.pathname,
 				capturedAt: Date.now(),
 				activeSheetId: native.build.sheetList === "native-book" ? new URLSearchParams(location.hash.slice(1)).get("gid") ?? new URL(location.href).searchParams.get("gid") : app().va.Tb().va?.[native.build.fields.sheetId]?.() ?? new URLSearchParams(location.hash.slice(1)).get("gid"),
 				sheets: list,
 				timers: observations.length ? "observed" : setup.status,
+				timersRequested: timing.ready(),
+				timersConfirmed: setup.confirmed === true,
 				timingError: setup.error ?? null,
 				timingSetup: setup,
 				progressVisible: busy,
@@ -3667,8 +4353,8 @@
 				await verify(native.build.sheetList === "native-book" ? ["dx"] : ["dx", "AA"]);
 				const model = call("dx");
 				await verifyModel(model);
-				const data = await measurements(), busy = progress();
-				const canObserve = timing.ready() && !data.error;
+				const data = measurements(timing), busy = progress();
+				const canObserve = timing.ready();
 				updateRequest(data, busy);
 				if (request?.state === "waiting" || busy) throw Error(t("Дождитесь текущего расчёта Sheets."));
 				await verify(["t4e"], { t4e: model[native.member("t4e")] });
@@ -3696,7 +4382,7 @@
 					sheetId,
 					scope: sheetId ? "sheet-and-dependencies" : "workbook",
 					state: canObserve ? "waiting" : "queued-without-measurements",
-					measurementWarning: canObserve ? null : data.error ?? timingReason(timing.status())
+					measurementWarning: canObserve ? null : timingReason(timing.status())
 				};
 				clearTimeout(requestTimeout);
 				if (canObserve) requestTimeout = setTimeout(() => {
@@ -3724,7 +4410,7 @@
 			});
 		}
 		return Object.freeze({
-			version: "0.3.23",
+			version: "0.3.24",
 			open,
 			read,
 			refresh,
@@ -13066,7 +13752,7 @@
 	enable_legacy_mode_flag();
 	//#endregion
 	//#region node_modules/bits-ui/dist/bits/utilities/hidden-input.svelte
-	var rest_excludes$31 = /* @__PURE__ */ new Set([
+	var rest_excludes$33 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -13076,7 +13762,7 @@
 	var root_1$16 = /* @__PURE__ */ from_tree([["input"]]);
 	function Hidden_input($$anchor, $$props) {
 		push($$props, true);
-		let value = prop($$props, "value", 15), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$31);
+		let value = prop($$props, "value", 15), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$33);
 		const mergedProps = /* @__PURE__ */ user_derived(() => mergeProps(restProps, {
 			"aria-hidden": "true",
 			tabindex: -1,
@@ -16230,7 +16916,7 @@
 	}
 	//#endregion
 	//#region node_modules/bits-ui/dist/bits/combobox/components/combobox-input.svelte
-	var rest_excludes$30 = /* @__PURE__ */ new Set([
+	var rest_excludes$32 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -16243,7 +16929,7 @@
 	var root$32 = /* @__PURE__ */ from_tree([["input"]]);
 	function Combobox_input($$anchor, $$props) {
 		push($$props, true);
-		let id = prop($$props, "id", 19, useId), ref = prop($$props, "ref", 15, null), clearOnDeselect = prop($$props, "clearOnDeselect", 3, false), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$30);
+		let id = prop($$props, "id", 19, useId), ref = prop($$props, "ref", 15, null), clearOnDeselect = prop($$props, "clearOnDeselect", 3, false), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$32);
 		const inputState = SelectInputState.create({
 			id: boxWith(() => id()),
 			ref: boxWith(() => ref(), (v) => ref(v)),
@@ -16287,7 +16973,7 @@
 	}
 	//#endregion
 	//#region node_modules/bits-ui/dist/bits/combobox/components/combobox-trigger.svelte
-	var rest_excludes$29 = /* @__PURE__ */ new Set([
+	var rest_excludes$31 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -16304,7 +16990,7 @@
 	]]);
 	function Combobox_trigger($$anchor, $$props) {
 		push($$props, true);
-		let id = prop($$props, "id", 19, useId), ref = prop($$props, "ref", 15, null), type = prop($$props, "type", 3, "button"), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$29);
+		let id = prop($$props, "id", 19, useId), ref = prop($$props, "ref", 15, null), type = prop($$props, "type", 3, "button"), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$31);
 		const triggerState = SelectComboTriggerState.create({
 			id: boxWith(() => id()),
 			ref: boxWith(() => ref(), (v) => ref(v))
@@ -16333,7 +17019,7 @@
 	}
 	//#endregion
 	//#region node_modules/bits-ui/dist/bits/utilities/popper-layer/popper-content.svelte
-	var rest_excludes$28 = /* @__PURE__ */ new Set([
+	var rest_excludes$30 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -16342,7 +17028,7 @@
 		"onPlaced"
 	]);
 	function Popper_content($$anchor, $$props) {
-		let isStatic = prop($$props, "isStatic", 3, false), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$28);
+		let isStatic = prop($$props, "isStatic", 3, false), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$30);
 		var fragment = comment();
 		var node = first_child(fragment);
 		var consequent = ($$anchor) => {
@@ -16373,7 +17059,7 @@
 	}
 	//#endregion
 	//#region node_modules/bits-ui/dist/bits/utilities/popper-layer/popper-layer-inner.svelte
-	var rest_excludes$27 = /* @__PURE__ */ new Set([
+	var rest_excludes$29 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -16424,7 +17110,7 @@
 	], 1);
 	function Popper_layer_inner($$anchor, $$props) {
 		push($$props, true);
-		let interactOutsideBehavior = prop($$props, "interactOutsideBehavior", 3, "close"), trapFocus = prop($$props, "trapFocus", 3, true), isValidEvent = prop($$props, "isValidEvent", 3, () => false), customAnchor = prop($$props, "customAnchor", 3, null), isStatic = prop($$props, "isStatic", 3, false), tooltip = prop($$props, "tooltip", 3, false), contentPointerEvents = prop($$props, "contentPointerEvents", 3, "auto"), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$27);
+		let interactOutsideBehavior = prop($$props, "interactOutsideBehavior", 3, "close"), trapFocus = prop($$props, "trapFocus", 3, true), isValidEvent = prop($$props, "isValidEvent", 3, () => false), customAnchor = prop($$props, "customAnchor", 3, null), isStatic = prop($$props, "isStatic", 3, false), tooltip = prop($$props, "tooltip", 3, false), contentPointerEvents = prop($$props, "contentPointerEvents", 3, "auto"), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$29);
 		const resolvedPreventScroll = /* @__PURE__ */ user_derived(() => $$props.preventScroll ?? true);
 		const effectiveStrategy = /* @__PURE__ */ user_derived(() => $$props.strategy ?? (get$2(resolvedPreventScroll) ? "fixed" : "absolute"));
 		{
@@ -16635,7 +17321,7 @@
 	}
 	//#endregion
 	//#region node_modules/bits-ui/dist/bits/utilities/popper-layer/popper-layer.svelte
-	var rest_excludes$26 = /* @__PURE__ */ new Set([
+	var rest_excludes$28 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -16678,7 +17364,7 @@
 		"shouldRender"
 	]);
 	function Popper_layer($$anchor, $$props) {
-		let interactOutsideBehavior = prop($$props, "interactOutsideBehavior", 3, "close"), trapFocus = prop($$props, "trapFocus", 3, true), isValidEvent = prop($$props, "isValidEvent", 3, () => false), customAnchor = prop($$props, "customAnchor", 3, null), isStatic = prop($$props, "isStatic", 3, false), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$26);
+		let interactOutsideBehavior = prop($$props, "interactOutsideBehavior", 3, "close"), trapFocus = prop($$props, "trapFocus", 3, true), isValidEvent = prop($$props, "isValidEvent", 3, () => false), customAnchor = prop($$props, "customAnchor", 3, null), isStatic = prop($$props, "isStatic", 3, false), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$28);
 		var fragment = comment();
 		var node = first_child(fragment);
 		var consequent = ($$anchor) => {
@@ -16801,7 +17487,7 @@
 	}
 	//#endregion
 	//#region node_modules/bits-ui/dist/bits/utilities/popper-layer/popper-layer-force-mount.svelte
-	var rest_excludes$25 = /* @__PURE__ */ new Set([
+	var rest_excludes$27 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -16842,7 +17528,7 @@
 		"enabled"
 	]);
 	function Popper_layer_force_mount($$anchor, $$props) {
-		let interactOutsideBehavior = prop($$props, "interactOutsideBehavior", 3, "close"), trapFocus = prop($$props, "trapFocus", 3, true), isValidEvent = prop($$props, "isValidEvent", 3, () => false), customAnchor = prop($$props, "customAnchor", 3, null), isStatic = prop($$props, "isStatic", 3, false), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$25);
+		let interactOutsideBehavior = prop($$props, "interactOutsideBehavior", 3, "close"), trapFocus = prop($$props, "trapFocus", 3, true), isValidEvent = prop($$props, "isValidEvent", 3, () => false), customAnchor = prop($$props, "customAnchor", 3, null), isStatic = prop($$props, "isStatic", 3, false), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$27);
 		Popper_layer_inner($$anchor, spread_props({
 			get popper() {
 				return $$props.popper;
@@ -16953,7 +17639,7 @@
 	}
 	//#endregion
 	//#region node_modules/bits-ui/dist/bits/select/components/select-content.svelte
-	var rest_excludes$24 = /* @__PURE__ */ new Set([
+	var rest_excludes$26 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -16989,7 +17675,7 @@
 	function Select_content($$anchor, $$props) {
 		const uid = props_id();
 		push($$props, true);
-		let id = prop($$props, "id", 19, () => createId(uid)), ref = prop($$props, "ref", 15, null), forceMount = prop($$props, "forceMount", 3, false), side = prop($$props, "side", 3, "bottom"), onInteractOutside = prop($$props, "onInteractOutside", 3, noop), onEscapeKeydown = prop($$props, "onEscapeKeydown", 3, noop), preventScroll = prop($$props, "preventScroll", 3, false), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$24);
+		let id = prop($$props, "id", 19, () => createId(uid)), ref = prop($$props, "ref", 15, null), forceMount = prop($$props, "forceMount", 3, false), side = prop($$props, "side", 3, "bottom"), onInteractOutside = prop($$props, "onInteractOutside", 3, noop), onEscapeKeydown = prop($$props, "onEscapeKeydown", 3, noop), preventScroll = prop($$props, "preventScroll", 3, false), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$26);
 		const contentState = SelectContentState.create({
 			id: boxWith(() => id()),
 			ref: boxWith(() => ref(), (v) => ref(v)),
@@ -17147,7 +17833,7 @@
 	}
 	//#endregion
 	//#region node_modules/bits-ui/dist/bits/select/components/select-item.svelte
-	var rest_excludes$23 = /* @__PURE__ */ new Set([
+	var rest_excludes$25 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -17175,7 +17861,7 @@
 	function Select_item($$anchor, $$props) {
 		const uid = props_id();
 		push($$props, true);
-		let id = prop($$props, "id", 19, () => createId(uid)), ref = prop($$props, "ref", 15, null), label = prop($$props, "label", 19, () => $$props.value), disabled = prop($$props, "disabled", 3, false), onHighlight = prop($$props, "onHighlight", 3, noop), onUnhighlight = prop($$props, "onUnhighlight", 3, noop), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$23);
+		let id = prop($$props, "id", 19, () => createId(uid)), ref = prop($$props, "ref", 15, null), label = prop($$props, "label", 19, () => $$props.value), disabled = prop($$props, "disabled", 3, false), onHighlight = prop($$props, "onHighlight", 3, noop), onUnhighlight = prop($$props, "onUnhighlight", 3, noop), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$25);
 		const itemState = SelectItemState.create({
 			id: boxWith(() => id()),
 			ref: boxWith(() => ref(), (v) => ref(v)),
@@ -17224,7 +17910,7 @@
 	}
 	//#endregion
 	//#region node_modules/bits-ui/dist/bits/select/components/select-viewport.svelte
-	var rest_excludes$22 = /* @__PURE__ */ new Set([
+	var rest_excludes$24 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -17241,7 +17927,7 @@
 	function Select_viewport($$anchor, $$props) {
 		const uid = props_id();
 		push($$props, true);
-		let id = prop($$props, "id", 19, () => createId(uid)), ref = prop($$props, "ref", 15, null), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$22);
+		let id = prop($$props, "id", 19, () => createId(uid)), ref = prop($$props, "ref", 15, null), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$24);
 		const viewportState = SelectViewportState.create({
 			id: boxWith(() => id()),
 			ref: boxWith(() => ref(), (v) => ref(v))
@@ -17899,7 +18585,7 @@
 	};
 	//#endregion
 	//#region node_modules/bits-ui/dist/bits/popover/components/popover-content.svelte
-	var rest_excludes$21 = /* @__PURE__ */ new Set([
+	var rest_excludes$23 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -17938,7 +18624,7 @@
 	function Popover_content($$anchor, $$props) {
 		const uid = props_id();
 		push($$props, true);
-		let ref = prop($$props, "ref", 15, null), id = prop($$props, "id", 19, () => createId(uid)), forceMount = prop($$props, "forceMount", 3, false), onOpenAutoFocus = prop($$props, "onOpenAutoFocus", 3, noop), onCloseAutoFocus = prop($$props, "onCloseAutoFocus", 3, noop), onEscapeKeydown = prop($$props, "onEscapeKeydown", 3, noop), onInteractOutside = prop($$props, "onInteractOutside", 3, noop), trapFocus = prop($$props, "trapFocus", 3, true), preventScroll = prop($$props, "preventScroll", 3, false), customAnchor = prop($$props, "customAnchor", 3, null), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$21);
+		let ref = prop($$props, "ref", 15, null), id = prop($$props, "id", 19, () => createId(uid)), forceMount = prop($$props, "forceMount", 3, false), onOpenAutoFocus = prop($$props, "onOpenAutoFocus", 3, noop), onCloseAutoFocus = prop($$props, "onCloseAutoFocus", 3, noop), onEscapeKeydown = prop($$props, "onEscapeKeydown", 3, noop), onInteractOutside = prop($$props, "onInteractOutside", 3, noop), trapFocus = prop($$props, "trapFocus", 3, true), preventScroll = prop($$props, "preventScroll", 3, false), customAnchor = prop($$props, "customAnchor", 3, null), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$23);
 		const contentState = PopoverContentState.create({
 			id: boxWith(() => id()),
 			ref: boxWith(() => ref(), (v) => ref(v)),
@@ -18103,7 +18789,7 @@
 	}
 	//#endregion
 	//#region node_modules/bits-ui/dist/bits/popover/components/popover-trigger.svelte
-	var rest_excludes$20 = /* @__PURE__ */ new Set([
+	var rest_excludes$22 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -18125,7 +18811,7 @@
 	function Popover_trigger($$anchor, $$props) {
 		const uid = props_id();
 		push($$props, true);
-		let id = prop($$props, "id", 19, () => createId(uid)), ref = prop($$props, "ref", 15, null), type = prop($$props, "type", 3, "button"), disabled = prop($$props, "disabled", 3, false), openOnHover = prop($$props, "openOnHover", 3, false), openDelay = prop($$props, "openDelay", 3, 700), closeDelay = prop($$props, "closeDelay", 3, 300), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$20);
+		let id = prop($$props, "id", 19, () => createId(uid)), ref = prop($$props, "ref", 15, null), type = prop($$props, "type", 3, "button"), disabled = prop($$props, "disabled", 3, false), openOnHover = prop($$props, "openOnHover", 3, false), openDelay = prop($$props, "openDelay", 3, 700), closeDelay = prop($$props, "closeDelay", 3, 300), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$22);
 		const triggerState = PopoverTriggerState.create({
 			id: boxWith(() => id()),
 			ref: boxWith(() => ref(), (v) => ref(v)),
@@ -18169,7 +18855,7 @@
 	}
 	//#endregion
 	//#region node_modules/bits-ui/dist/bits/popover/components/popover-close.svelte
-	var rest_excludes$19 = /* @__PURE__ */ new Set([
+	var rest_excludes$21 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -18186,7 +18872,7 @@
 	function Popover_close($$anchor, $$props) {
 		const uid = props_id();
 		push($$props, true);
-		let id = prop($$props, "id", 19, () => createId(uid)), ref = prop($$props, "ref", 15, null), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$19);
+		let id = prop($$props, "id", 19, () => createId(uid)), ref = prop($$props, "ref", 15, null), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$21);
 		const closeState = PopoverCloseState.create({
 			id: boxWith(() => id()),
 			ref: boxWith(() => ref(), (v) => ref(v))
@@ -18338,7 +19024,7 @@
 	}
 	//#endregion
 	//#region node_modules/bits-ui/dist/bits/select/components/select-value.svelte
-	var rest_excludes$18 = /* @__PURE__ */ new Set([
+	var rest_excludes$20 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -18356,7 +19042,7 @@
 	function Select_value($$anchor, $$props) {
 		const uid = props_id();
 		push($$props, true);
-		let ref = prop($$props, "ref", 15, null), id = prop($$props, "id", 19, () => createId(uid)), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$18);
+		let ref = prop($$props, "ref", 15, null), id = prop($$props, "id", 19, () => createId(uid)), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$20);
 		const valueState = SelectValueState.create({
 			id: boxWith(() => id()),
 			ref: boxWith(() => ref(), (v) => ref(v)),
@@ -18419,7 +19105,7 @@
 	}
 	//#endregion
 	//#region node_modules/bits-ui/dist/bits/select/components/select-trigger.svelte
-	var rest_excludes$17 = /* @__PURE__ */ new Set([
+	var rest_excludes$19 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -18437,7 +19123,7 @@
 	function Select_trigger($$anchor, $$props) {
 		const uid = props_id();
 		push($$props, true);
-		let id = prop($$props, "id", 19, () => createId(uid)), ref = prop($$props, "ref", 15, null), type = prop($$props, "type", 3, "button"), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$17);
+		let id = prop($$props, "id", 19, () => createId(uid)), ref = prop($$props, "ref", 15, null), type = prop($$props, "type", 3, "button"), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$19);
 		const triggerState = SelectTriggerState.create({
 			id: boxWith(() => id()),
 			ref: boxWith(() => ref(), (v) => ref(v))
@@ -18689,7 +19375,7 @@
 	}
 	//#endregion
 	//#region node_modules/bits-ui/dist/bits/tabs/components/tabs.svelte
-	var rest_excludes$16 = /* @__PURE__ */ new Set([
+	var rest_excludes$18 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -18712,7 +19398,7 @@
 	function Tabs($$anchor, $$props) {
 		const uid = props_id();
 		push($$props, true);
-		let id = prop($$props, "id", 19, () => createId(uid)), ref = prop($$props, "ref", 15, null), value = prop($$props, "value", 15, ""), onValueChange = prop($$props, "onValueChange", 3, noop), orientation = prop($$props, "orientation", 3, "horizontal"), loop = prop($$props, "loop", 3, true), activationMode = prop($$props, "activationMode", 3, "automatic"), disabled = prop($$props, "disabled", 3, false), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$16);
+		let id = prop($$props, "id", 19, () => createId(uid)), ref = prop($$props, "ref", 15, null), value = prop($$props, "value", 15, ""), onValueChange = prop($$props, "onValueChange", 3, noop), orientation = prop($$props, "orientation", 3, "horizontal"), loop = prop($$props, "loop", 3, true), activationMode = prop($$props, "activationMode", 3, "automatic"), disabled = prop($$props, "disabled", 3, false), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$18);
 		const rootState = TabsRootState.create({
 			id: boxWith(() => id()),
 			value: boxWith(() => value(), (v) => {
@@ -18749,7 +19435,7 @@
 	}
 	//#endregion
 	//#region node_modules/bits-ui/dist/bits/tabs/components/tabs-content.svelte
-	var rest_excludes$15 = /* @__PURE__ */ new Set([
+	var rest_excludes$17 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -18768,7 +19454,7 @@
 	function Tabs_content($$anchor, $$props) {
 		const uid = props_id();
 		push($$props, true);
-		let id = prop($$props, "id", 19, () => createId(uid)), ref = prop($$props, "ref", 15, null), tabindex = prop($$props, "tabindex", 3, 0), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$15);
+		let id = prop($$props, "id", 19, () => createId(uid)), ref = prop($$props, "ref", 15, null), tabindex = prop($$props, "tabindex", 3, 0), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$17);
 		const contentState = TabsContentState.create({
 			value: boxWith(() => $$props.value),
 			tabindex: boxWith(() => tabindex() ?? 0),
@@ -18799,7 +19485,7 @@
 	}
 	//#endregion
 	//#region node_modules/bits-ui/dist/bits/tabs/components/tabs-list.svelte
-	var rest_excludes$14 = /* @__PURE__ */ new Set([
+	var rest_excludes$16 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -18816,7 +19502,7 @@
 	function Tabs_list($$anchor, $$props) {
 		const uid = props_id();
 		push($$props, true);
-		let id = prop($$props, "id", 19, () => createId(uid)), ref = prop($$props, "ref", 15, null), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$14);
+		let id = prop($$props, "id", 19, () => createId(uid)), ref = prop($$props, "ref", 15, null), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$16);
 		const listState = TabsListState.create({
 			id: boxWith(() => id()),
 			ref: boxWith(() => ref(), (v) => ref(v))
@@ -18845,7 +19531,7 @@
 	}
 	//#endregion
 	//#region node_modules/bits-ui/dist/bits/tabs/components/tabs-trigger.svelte
-	var rest_excludes$13 = /* @__PURE__ */ new Set([
+	var rest_excludes$15 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -18865,7 +19551,7 @@
 	function Tabs_trigger($$anchor, $$props) {
 		const uid = props_id();
 		push($$props, true);
-		let disabled = prop($$props, "disabled", 3, false), id = prop($$props, "id", 19, () => createId(uid)), type = prop($$props, "type", 3, "button"), ref = prop($$props, "ref", 15, null), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$13);
+		let disabled = prop($$props, "disabled", 3, false), id = prop($$props, "id", 19, () => createId(uid)), type = prop($$props, "type", 3, "button"), ref = prop($$props, "ref", 15, null), restProps = /* @__PURE__ */ rest_props($$props, rest_excludes$15);
 		const triggerState = TabsTriggerState.create({
 			id: boxWith(() => id()),
 			disabled: boxWith(() => disabled() ?? false),
@@ -19026,7 +19712,7 @@
 	var getLucideContext = () => getContext(LucideContext);
 	//#endregion
 	//#region node_modules/@lucide/svelte/dist/Icon.svelte
-	var rest_excludes$12 = /* @__PURE__ */ new Set([
+	var rest_excludes$14 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -19055,7 +19741,7 @@
 			node: iconNode(),
 			aliases: [],
 			size: 24
-		})), props = /* @__PURE__ */ rest_props($$props, rest_excludes$12);
+		})), props = /* @__PURE__ */ rest_props($$props, rest_excludes$14);
 		const hasAccessibleProp = /* @__PURE__ */ user_derived(() => Boolean($$props.children) || hasA11yProp(props));
 		const $$d = /* @__PURE__ */ user_derived(() => buildLucideIconNode(icon(), {
 			color: color(),
@@ -19092,13 +19778,13 @@
 	}
 	//#endregion
 	//#region node_modules/@lucide/svelte/dist/icons/arrow-left.svelte
-	var rest_excludes$11 = /* @__PURE__ */ new Set([
+	var rest_excludes$13 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy"
 	]);
 	function Arrow_left($$anchor, $$props) {
-		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$11);
+		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$13);
 		const iconData = {
 			"name": "arrow-left",
 			"size": 24,
@@ -19110,13 +19796,13 @@
 	}
 	//#endregion
 	//#region node_modules/@lucide/svelte/dist/icons/check.svelte
-	var rest_excludes$10 = /* @__PURE__ */ new Set([
+	var rest_excludes$12 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy"
 	]);
 	function Check($$anchor, $$props) {
-		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$10);
+		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$12);
 		const iconData = {
 			"name": "check",
 			"size": 24,
@@ -19128,13 +19814,13 @@
 	}
 	//#endregion
 	//#region node_modules/@lucide/svelte/dist/icons/chevron-down.svelte
-	var rest_excludes$9 = /* @__PURE__ */ new Set([
+	var rest_excludes$11 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy"
 	]);
 	function Chevron_down($$anchor, $$props) {
-		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$9);
+		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$11);
 		const iconData = {
 			"name": "chevron-down",
 			"size": 24,
@@ -19146,13 +19832,13 @@
 	}
 	//#endregion
 	//#region node_modules/@lucide/svelte/dist/icons/circle-question-mark.svelte
-	var rest_excludes$8 = /* @__PURE__ */ new Set([
+	var rest_excludes$10 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy"
 	]);
 	function Circle_question_mark($$anchor, $$props) {
-		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$8);
+		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$10);
 		const iconData = {
 			"name": "circle-question-mark",
 			"size": 24,
@@ -19173,13 +19859,13 @@
 	}
 	//#endregion
 	//#region node_modules/@lucide/svelte/dist/icons/download.svelte
-	var rest_excludes$7 = /* @__PURE__ */ new Set([
+	var rest_excludes$9 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy"
 	]);
 	function Download($$anchor, $$props) {
-		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$7);
+		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$9);
 		const iconData = {
 			"name": "download",
 			"size": 24,
@@ -19195,13 +19881,13 @@
 	}
 	//#endregion
 	//#region node_modules/@lucide/svelte/dist/icons/flask-conical.svelte
-	var rest_excludes$6 = /* @__PURE__ */ new Set([
+	var rest_excludes$8 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy"
 	]);
 	function Flask_conical($$anchor, $$props) {
-		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$6);
+		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$8);
 		const iconData = {
 			"name": "flask-conical",
 			"size": 24,
@@ -19217,13 +19903,13 @@
 	}
 	//#endregion
 	//#region node_modules/@lucide/svelte/dist/icons/gauge.svelte
-	var rest_excludes$5 = /* @__PURE__ */ new Set([
+	var rest_excludes$7 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy"
 	]);
 	function Gauge($$anchor, $$props) {
-		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$5);
+		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$7);
 		const iconData = {
 			"name": "gauge",
 			"size": 24,
@@ -19235,13 +19921,13 @@
 	}
 	//#endregion
 	//#region node_modules/@lucide/svelte/dist/icons/hourglass.svelte
-	var rest_excludes$4 = /* @__PURE__ */ new Set([
+	var rest_excludes$6 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy"
 	]);
 	function Hourglass($$anchor, $$props) {
-		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$4);
+		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$6);
 		const iconData = {
 			"name": "hourglass",
 			"size": 24,
@@ -19258,13 +19944,13 @@
 	}
 	//#endregion
 	//#region node_modules/@lucide/svelte/dist/icons/list-filter.svelte
-	var rest_excludes$3 = /* @__PURE__ */ new Set([
+	var rest_excludes$5 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy"
 	]);
 	function List_filter($$anchor, $$props) {
-		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$3);
+		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$5);
 		const iconData = {
 			"name": "list-filter",
 			"size": 24,
@@ -19280,13 +19966,13 @@
 	}
 	//#endregion
 	//#region node_modules/@lucide/svelte/dist/icons/panel-right.svelte
-	var rest_excludes$2 = /* @__PURE__ */ new Set([
+	var rest_excludes$4 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy"
 	]);
 	function Panel_right($$anchor, $$props) {
-		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$2);
+		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$4);
 		const iconData = {
 			"name": "panel-right",
 			"size": 24,
@@ -19304,17 +19990,73 @@
 	}
 	//#endregion
 	//#region node_modules/@lucide/svelte/dist/icons/rotate-cw.svelte
-	var rest_excludes$1 = /* @__PURE__ */ new Set([
+	var rest_excludes$3 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy"
 	]);
 	function Rotate_cw($$anchor, $$props) {
-		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$1);
+		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$3);
 		const iconData = {
 			"name": "rotate-cw",
 			"size": 24,
 			"node": [["path", { "d": "M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" }], ["path", { "d": "M21 3v5h-5" }]]
+		};
+		Icon($$anchor, spread_props(() => props, { get icon() {
+			return iconData;
+		} }));
+	}
+	//#endregion
+	//#region node_modules/@lucide/svelte/dist/icons/toggle-left.svelte
+	var rest_excludes$2 = /* @__PURE__ */ new Set([
+		"$$slots",
+		"$$events",
+		"$$legacy"
+	]);
+	function Toggle_left($$anchor, $$props) {
+		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$2);
+		const iconData = {
+			"name": "toggle-left",
+			"size": 24,
+			"node": [["circle", {
+				"cx": "9",
+				"cy": "12",
+				"r": "3"
+			}], ["rect", {
+				"width": "20",
+				"height": "14",
+				"x": "2",
+				"y": "5",
+				"rx": "7"
+			}]]
+		};
+		Icon($$anchor, spread_props(() => props, { get icon() {
+			return iconData;
+		} }));
+	}
+	//#endregion
+	//#region node_modules/@lucide/svelte/dist/icons/toggle-right.svelte
+	var rest_excludes$1 = /* @__PURE__ */ new Set([
+		"$$slots",
+		"$$events",
+		"$$legacy"
+	]);
+	function Toggle_right($$anchor, $$props) {
+		let props = /* @__PURE__ */ rest_props($$props, rest_excludes$1);
+		const iconData = {
+			"name": "toggle-right",
+			"size": 24,
+			"node": [["circle", {
+				"cx": "15",
+				"cy": "12",
+				"r": "3"
+			}], ["rect", {
+				"width": "20",
+				"height": "14",
+				"x": "2",
+				"y": "5",
+				"rx": "7"
+			}]]
 		};
 		Icon($$anchor, spread_props(() => props, { get icon() {
 			return iconData;
@@ -19545,12 +20287,29 @@
 			" "
 		]
 	], 1);
-	var root_2$10 = /* @__PURE__ */ from_tree([[
+	var root_2$10 = /* @__PURE__ */ from_tree([
+		[
+			"button",
+			{
+				class: "text-button strict-toggle",
+				role: "switch"
+			},
+			,
+			" "
+		],
+		" ",
+		[
+			"p",
+			{ class: "setting-hint" },
+			" "
+		]
+	], 1);
+	var root_3$8 = /* @__PURE__ */ from_tree([[
 		"button",
 		{ class: "text-button" },
 		" "
 	]]);
-	var root_3$8 = /* @__PURE__ */ from_tree([
+	var root_4$7 = /* @__PURE__ */ from_tree([
 		[
 			"div",
 			{ class: "help-heading" },
@@ -19598,6 +20357,8 @@
 		" ",
 		,
 		" ",
+		,
+		" ",
 		[
 			"div",
 			{ class: "help-bottom" },
@@ -19611,13 +20372,13 @@
 			,
 		]
 	], 1);
-	var root_4$6 = /* @__PURE__ */ from_tree([
+	var root_5$4 = /* @__PURE__ */ from_tree([
 		,
 		,
 		" ",
 		,
 	], 1);
-	var root_5$4 = /* @__PURE__ */ from_tree([[
+	var root_6$4 = /* @__PURE__ */ from_tree([[
 		"div",
 		{ class: "connection-notice" },
 		[
@@ -19631,14 +20392,6 @@
 			" "
 		]
 	]]);
-	var root_6$4 = /* @__PURE__ */ from_tree([[
-		"p",
-		{
-			class: "connection-notice",
-			role: "status"
-		},
-		" "
-	]]);
 	var root_7$2 = /* @__PURE__ */ from_tree([[
 		"p",
 		{
@@ -19647,7 +20400,15 @@
 		},
 		" "
 	]]);
-	var root_8$2 = /* @__PURE__ */ from_tree([
+	var root_8$2 = /* @__PURE__ */ from_tree([[
+		"p",
+		{
+			class: "connection-notice",
+			role: "status"
+		},
+		" "
+	]]);
+	var root_9$2 = /* @__PURE__ */ from_tree([
 		[
 			"div",
 			{ class: "panel-toolbar" },
@@ -19690,7 +20451,7 @@
 		push($$props, true);
 		let helpContent = /* @__PURE__ */ state(null);
 		let helpTrigger = /* @__PURE__ */ state(null);
-		var fragment = root_8$2();
+		var fragment = root_9$2();
 		var div = first_child(fragment);
 		var node = child(div);
 		SheetCombobox(node, { get model() {
@@ -19699,7 +20460,7 @@
 		component(sibling(node, 2), () => Popover, ($$anchor, Popover_Root) => {
 			Popover_Root($$anchor, {
 				children: ($$anchor, $$slotProps) => {
-					var fragment_1 = root_4$6();
+					var fragment_1 = root_5$4();
 					var node_2 = first_child(fragment_1);
 					{
 						let $0 = /* @__PURE__ */ user_derived(() => t("О замерах"));
@@ -19752,7 +20513,7 @@
 												set(helpContent, $$value, true);
 											},
 											children: ($$anchor, $$slotProps) => {
-												var fragment_4 = root_3$8();
+												var fragment_4 = root_4$7();
 												var div_1 = first_child(fragment_4);
 												var strong = child(div_1);
 												var text = only_child(strong, true);
@@ -19808,22 +20569,51 @@
 												if_block(node_7, ($$render) => {
 													if (!$$props.model.isDemo) $$render(consequent_1);
 												});
-												var div_2 = sibling(node_7, 2);
-												var button = child(div_2);
-												var node_8 = child(button);
-												Download(node_8, { size: 13 });
-												var text_9 = sibling(node_8);
-												reset(button);
-												var node_9 = sibling(button, 2);
-												var consequent_2 = ($$anchor) => {
-													var button_1 = root_2$10();
-													var text_10 = only_child(button_1, true);
-													template_effect(($0) => set_text(text_10, $0), [() => t("Выключить замеры в этой таблице")]);
-													delegated("click", button_1, () => $$props.model.disconnect());
-													append($$anchor, button_1);
+												var node_8 = sibling(node_7, 2);
+												var consequent_3 = ($$anchor) => {
+													var fragment_7 = root_2$10();
+													var button = first_child(fragment_7);
+													var node_9 = child(button);
+													var consequent_2 = ($$anchor) => {
+														Toggle_right($$anchor, { size: 16 });
+													};
+													var alternate = ($$anchor) => {
+														Toggle_left($$anchor, { size: 16 });
+													};
+													if_block(node_9, ($$render) => {
+														if ($$props.model.strict) $$render(consequent_2);
+														else $$render(alternate, -1);
+													});
+													var text_9 = sibling(node_9);
+													reset(button);
+													var text_10 = only_child(sibling(button, 2), true);
+													template_effect(($0, $1) => {
+														set_attribute(button, "aria-checked", $$props.model.strict);
+														set_text(text_9, ` ${$0 ?? ""}`);
+														set_text(text_10, $1);
+													}, [() => t("Строгий режим"), () => t("Таймеры ячеек включаются только для Worker Google, сверенного офлайн. После переключения таблица перезагрузится.")]);
+													delegated("click", button, () => $$props.model.setStrict(!$$props.model.strict));
+													append($$anchor, fragment_7);
 												};
-												if_block(node_9, ($$render) => {
-													if (!$$props.model.isDemo && !$$props.model.needsSetup) $$render(consequent_2);
+												if_block(node_8, ($$render) => {
+													if (!$$props.model.isDemo) $$render(consequent_3);
+												});
+												var div_2 = sibling(node_8, 2);
+												var button_1 = child(div_2);
+												var node_10 = child(button_1);
+												Download(node_10, { size: 13 });
+												var text_11 = sibling(node_10);
+												reset(button_1);
+												var node_11 = sibling(button_1, 2);
+												var consequent_4 = ($$anchor) => {
+													var button_2 = root_3$8();
+													var text_12 = only_child(button_2, true);
+													template_effect(($0) => set_text(text_12, $0), [() => t("Выключить замеры в этой таблице")]);
+													delegated("click", button_2, () => $$props.model.disconnect());
+													append($$anchor, button_2);
+												};
+												if_block(node_11, ($$render) => {
+													if (!$$props.model.isDemo && !$$props.model.needsSetup) $$render(consequent_4);
 												});
 												reset(div_2);
 												template_effect(($0, $1, $2, $3, $4, $5, $6, $7) => {
@@ -19833,8 +20623,8 @@
 													set_text(text_4, $3);
 													set_text(text_5, $4);
 													set_text(text_6, $5);
-													set_attribute(button, "title", $6);
-													set_text(text_9, ` ${$7 ?? ""}`);
+													set_attribute(button_1, "title", $6);
+													set_text(text_11, ` ${$7 ?? ""}`);
 												}, [
 													() => t("Об инструменте"),
 													() => t("Расчёт и замеры выполняет Google. Иконка панели открывает штатный инструмент."),
@@ -19845,7 +20635,7 @@
 													() => t("Скачать результаты"),
 													() => t("Скачать данные")
 												]);
-												delegated("click", button, () => $$props.model.download());
+												delegated("click", button_1, () => $$props.model.download());
 												append($$anchor, fragment_4);
 											},
 											$$slots: { default: true }
@@ -19864,75 +20654,75 @@
 		});
 		reset(div);
 		var div_3 = sibling(div, 2);
-		var button_2 = child(div_3);
-		var node_10 = child(button_2);
-		var consequent_3 = ($$anchor) => {
+		var button_3 = child(div_3);
+		var node_12 = child(button_3);
+		var consequent_5 = ($$anchor) => {
 			Hourglass($$anchor, { size: 14 });
 		};
-		var alternate = ($$anchor) => {
+		var alternate_1 = ($$anchor) => {
 			Rotate_cw($$anchor, { size: 14 });
 		};
-		if_block(node_10, ($$render) => {
-			if ($$props.model.running) $$render(consequent_3);
-			else $$render(alternate, -1);
+		if_block(node_12, ($$render) => {
+			if ($$props.model.running) $$render(consequent_5);
+			else $$render(alternate_1, -1);
 		});
-		var text_11 = sibling(node_10);
-		reset(button_2);
-		var button_3 = sibling(button_2, 2);
-		Panel_right(child(button_3), { size: 15 });
+		var text_13 = sibling(node_12);
 		reset(button_3);
 		var button_4 = sibling(button_3, 2);
-		var node_12 = child(button_4);
-		Flask_conical(node_12, { size: 14 });
-		var text_12 = sibling(node_12);
+		Panel_right(child(button_4), { size: 15 });
 		reset(button_4);
+		var button_5 = sibling(button_4, 2);
+		var node_14 = child(button_5);
+		Flask_conical(node_14, { size: 14 });
+		var text_14 = sibling(node_14);
+		reset(button_5);
 		reset(div_3);
-		var node_13 = sibling(div_3, 2);
-		var consequent_4 = ($$anchor) => {
-			var div_4 = root_5$4();
+		var node_15 = sibling(div_3, 2);
+		var consequent_6 = ($$anchor) => {
+			var div_4 = root_6$4();
 			var span = child(div_4);
-			var text_13 = only_child(span, true);
-			var button_5 = sibling(span);
-			var text_14 = only_child(button_5, true);
+			var text_15 = only_child(span, true);
+			var button_6 = sibling(span);
+			var text_16 = only_child(button_6, true);
 			reset(div_4);
 			template_effect(($0, $1) => {
-				set_text(text_13, $0);
-				set_text(text_14, $1);
+				set_text(text_15, $0);
+				set_text(text_16, $1);
 			}, [() => t("Для адресных замеров нужен ранний запуск."), () => t("Подключить и перезагрузить")]);
-			delegated("click", button_5, () => $$props.model.connect());
+			delegated("click", button_6, () => $$props.model.connect());
 			append($$anchor, div_4);
 		};
-		if_block(node_13, ($$render) => {
-			if ($$props.model.needsSetup) $$render(consequent_4);
+		if_block(node_15, ($$render) => {
+			if ($$props.model.needsSetup) $$render(consequent_6);
 		});
-		var node_14 = sibling(node_13, 2);
-		var consequent_5 = ($$anchor) => {
-			var p_8 = root_6$4();
-			var text_15 = only_child(p_8, true);
-			template_effect(() => set_text(text_15, $$props.model.error));
-			append($$anchor, p_8);
-		};
-		if_block(node_14, ($$render) => {
-			if ($$props.model.error) $$render(consequent_5);
-		});
-		var node_15 = sibling(node_14, 2);
-		var consequent_6 = ($$anchor) => {
+		var node_16 = sibling(node_15, 2);
+		var consequent_7 = ($$anchor) => {
 			var p_9 = root_7$2();
-			var text_16 = only_child(p_9, true);
-			template_effect(() => set_text(text_16, $$props.model.workerNote));
+			var text_17 = only_child(p_9, true);
+			template_effect(() => set_text(text_17, $$props.model.error));
 			append($$anchor, p_9);
 		};
-		if_block(node_15, ($$render) => {
-			if ($$props.model.workerNote) $$render(consequent_6);
+		if_block(node_16, ($$render) => {
+			if ($$props.model.error) $$render(consequent_7);
+		});
+		var node_17 = sibling(node_16, 2);
+		var consequent_8 = ($$anchor) => {
+			var p_10 = root_8$2();
+			var text_18 = only_child(p_10, true);
+			template_effect(() => set_text(text_18, $$props.model.workerNote));
+			append($$anchor, p_10);
+		};
+		if_block(node_17, ($$render) => {
+			if ($$props.model.workerNote) $$render(consequent_8);
 		});
 		template_effect(($0, $1, $2, $3, $4) => {
-			button_2.disabled = $$props.model.running;
-			set_text(text_11, ` ${$0 ?? ""}`);
-			set_attribute(button_3, "title", $1);
-			set_attribute(button_3, "aria-label", $2);
-			set_attribute(button_4, "aria-pressed", $$props.model.experimentalOpen ?? false);
-			set_attribute(button_4, "title", $3);
-			set_text(text_12, ` ${$4 ?? ""}`);
+			button_3.disabled = $$props.model.running;
+			set_text(text_13, ` ${$0 ?? ""}`);
+			set_attribute(button_4, "title", $1);
+			set_attribute(button_4, "aria-label", $2);
+			set_attribute(button_5, "aria-pressed", $$props.model.experimentalOpen ?? false);
+			set_attribute(button_5, "title", $3);
+			set_text(text_14, ` ${$4 ?? ""}`);
 		}, [
 			() => $$props.model.running ? t("Расчёт…") : t("Пересчитать"),
 			() => t("Панель Google"),
@@ -19940,9 +20730,9 @@
 			() => t("Экспериментальные метрики"),
 			() => t("Эксперимент")
 		]);
-		delegated("click", button_2, () => $$props.model.recalculate());
-		delegated("click", button_3, () => $$props.model.openGoogle());
-		delegated("click", button_4, () => $$props.model.setExperimental(!$$props.model.experimentalOpen));
+		delegated("click", button_3, () => $$props.model.recalculate());
+		delegated("click", button_4, () => $$props.model.openGoogle());
+		delegated("click", button_5, () => $$props.model.setExperimental(!$$props.model.experimentalOpen));
 		append($$anchor, fragment);
 		pop();
 	}
@@ -19994,7 +20784,7 @@
 			" "
 		]
 	]]);
-	var root_4$5 = /* @__PURE__ */ from_tree([[
+	var root_4$6 = /* @__PURE__ */ from_tree([[
 		"figure",
 		null,
 		[
@@ -20041,7 +20831,7 @@
 			if (index < 0) return 50;
 			return (get$2(measured).slice(0, index).reduce((sum, phase) => sum + phase.ms, 0) + get$2(activePhase).ms / 2) / get$2(total) * 100;
 		});
-		var figure = root_4$5();
+		var figure = root_4$6();
 		let classes;
 		var div = child(figure);
 		var span = child(div);
@@ -20427,7 +21217,7 @@
 		{ class: "cell-rule" },
 		" "
 	]]);
-	var root_4$4 = /* @__PURE__ */ from_tree([[
+	var root_4$5 = /* @__PURE__ */ from_tree([[
 		"li",
 		null,
 		[
@@ -20481,7 +21271,7 @@
 		var ol = child(div);
 		var node = child(ol);
 		each(node, 17, () => get$2(shown), (cell) => `${cell.sheet}:${cell.address ?? `${cell.row}:${cell.col}`}:${cell.type}`, ($$anchor, cell) => {
-			var li = root_4$4();
+			var li = root_4$5();
 			var div_1 = child(li);
 			var span = child(div_1);
 			let styles;
@@ -20713,7 +21503,12 @@
 		" ",
 		,
 	], 1);
-	var root_3$4 = /* @__PURE__ */ from_tree([[
+	var root_3$4 = /* @__PURE__ */ from_tree(["· ", [
+		"span",
+		{ class: "stale-mark" },
+		" "
+	]], 1);
+	var root_4$4 = /* @__PURE__ */ from_tree([[
 		"div",
 		{ class: "result-period" },
 		,
@@ -20721,7 +21516,8 @@
 		[
 			"time",
 			null,
-			" "
+			" ",
+			,
 		]
 	]]);
 	function ResultPeriod($$anchor, $$props) {
@@ -20734,7 +21530,7 @@
 			value: "session",
 			label: t("С момента открытия")
 		}];
-		var div = root_3$4();
+		var div = root_4$4();
 		var node = child(div);
 		component(node, () => Select, ($$anchor, Select_Root) => {
 			Select_Root($$anchor, {
@@ -20843,7 +21639,18 @@
 			});
 		});
 		var time = sibling(node, 2);
-		var text_1 = only_child(time, true);
+		var text_1 = child(time, true);
+		var node_10 = sibling(text_1);
+		var consequent_1 = ($$anchor) => {
+			var fragment_8 = root_3$4();
+			var text_2 = only_child(sibling(first_child(fragment_8)), true);
+			template_effect(($0) => set_text(text_2, $0), [() => t("устарел")]);
+			append($$anchor, fragment_8);
+		};
+		if_block(node_10, ($$render) => {
+			if (model().stale) $$render(consequent_1);
+		});
+		reset(time);
 		reset(div);
 		template_effect(($0) => {
 			set_attribute(time, "title", $0);
@@ -20873,7 +21680,7 @@
 		]
 	]]);
 	function PanelFooter($$anchor) {
-		const version = "0.3.23";
+		const version = "0.3.24";
 		var footer = root$6();
 		var text = only_child(child(footer));
 		next$1();
@@ -21411,7 +22218,13 @@
 	}
 	//#endregion
 	//#region userscript/src/ui/ExperimentalPanel.svelte
-	var root$2 = /* @__PURE__ */ from_tree([
+	var root$2 = /* @__PURE__ */ from_tree(["· ", [
+		"span",
+		{ class: "stale-mark" },
+		" "
+	]], 1);
+	var root_1$2 = /* @__PURE__ */ from_tree([" ", ,], 1);
+	var root_2$2 = /* @__PURE__ */ from_tree([
 		,
 		,
 		" ",
@@ -21423,45 +22236,45 @@
 		" ",
 		,
 	], 1);
-	var root_1$2 = /* @__PURE__ */ from_tree([" ", ,], 1);
-	var root_2$2 = /* @__PURE__ */ from_tree([[
+	var root_3$1 = /* @__PURE__ */ from_tree([" ", ,], 1);
+	var root_4$1 = /* @__PURE__ */ from_tree([[
 		"span",
 		null,
 		" "
 	], ,], 1);
-	var root_3$1 = /* @__PURE__ */ from_tree([
+	var root_5$1 = /* @__PURE__ */ from_tree([
 		,
 		,
 		" ",
 		,
 	], 1);
-	var root_4$1 = /* @__PURE__ */ from_tree([[
+	var root_6$1 = /* @__PURE__ */ from_tree([[
 		"p",
 		{ class: "experiment-note" },
 		" "
 	]]);
-	var root_5$1 = /* @__PURE__ */ from_tree([[
-		"p",
-		{
-			class: "experiment-note",
-			role: "status"
-		},
-		" "
-	]]);
-	var root_6$1 = /* @__PURE__ */ from_tree([[
-		"p",
-		{
-			class: "experiment-note",
-			role: "status"
-		},
-		" "
-	]]);
 	var root_7 = /* @__PURE__ */ from_tree([[
+		"p",
+		{
+			class: "experiment-note",
+			role: "status"
+		},
+		" "
+	]]);
+	var root_8 = /* @__PURE__ */ from_tree([[
+		"p",
+		{
+			class: "experiment-note",
+			role: "status"
+		},
+		" "
+	]]);
+	var root_9 = /* @__PURE__ */ from_tree([[
 		"span",
 		null,
 		"*"
 	]]);
-	var root_8 = /* @__PURE__ */ from_tree([[
+	var root_10 = /* @__PURE__ */ from_tree([[
 		"div",
 		null,
 		[
@@ -21478,7 +22291,7 @@
 			,
 		]
 	]]);
-	var root_9 = /* @__PURE__ */ from_tree([[
+	var root_11 = /* @__PURE__ */ from_tree([[
 		"details",
 		{ class: "experiment-group" },
 		[
@@ -21490,7 +22303,7 @@
 		" ",
 		["dl", { class: "metric-list" }]
 	]]);
-	var root_10 = /* @__PURE__ */ from_tree([
+	var root_12 = /* @__PURE__ */ from_tree([
 		[
 			"div",
 			{ class: "experiment-context" },
@@ -21513,7 +22326,7 @@
 			" "
 		]
 	], 1);
-	var root_11 = /* @__PURE__ */ from_tree([[
+	var root_13 = /* @__PURE__ */ from_tree([[
 		"li",
 		null,
 		[
@@ -21536,23 +22349,23 @@
 			" "
 		]
 	]]);
-	var root_12 = /* @__PURE__ */ from_tree([["ol", { class: "function-list" }]]);
-	var root_13 = /* @__PURE__ */ from_tree([[
-		"p",
-		{ class: "experiment-note" },
-		" "
-	]]);
-	var root_14 = /* @__PURE__ */ from_tree([[
-		"p",
-		{ class: "experiment-note" },
-		" "
-	]]);
+	var root_14 = /* @__PURE__ */ from_tree([["ol", { class: "function-list" }]]);
 	var root_15 = /* @__PURE__ */ from_tree([[
 		"p",
 		{ class: "experiment-note" },
 		" "
 	]]);
-	var root_16 = /* @__PURE__ */ from_tree([
+	var root_16 = /* @__PURE__ */ from_tree([[
+		"p",
+		{ class: "experiment-note" },
+		" "
+	]]);
+	var root_17 = /* @__PURE__ */ from_tree([[
+		"p",
+		{ class: "experiment-note" },
+		" "
+	]]);
+	var root_18 = /* @__PURE__ */ from_tree([
 		[
 			"div",
 			{ class: "experiment-context" },
@@ -21570,7 +22383,7 @@
 		" ",
 		,
 	], 1);
-	var root_17 = /* @__PURE__ */ from_tree([[
+	var root_19 = /* @__PURE__ */ from_tree([[
 		"div",
 		null,
 		[
@@ -21585,7 +22398,7 @@
 			" "
 		]
 	]]);
-	var root_18 = /* @__PURE__ */ from_tree([[
+	var root_20 = /* @__PURE__ */ from_tree([[
 		"div",
 		{ class: "raw-metric" },
 		[
@@ -21599,12 +22412,12 @@
 			" "
 		]
 	]]);
-	var root_19 = /* @__PURE__ */ from_tree([[
+	var root_21 = /* @__PURE__ */ from_tree([[
 		"p",
 		{ class: "experiment-note" },
 		" "
 	]]);
-	var root_20 = /* @__PURE__ */ from_tree([
+	var root_22 = /* @__PURE__ */ from_tree([
 		[
 			"p",
 			{ class: "experiment-note" },
@@ -21615,12 +22428,12 @@
 		" ",
 		,
 	], 1);
-	var root_21 = /* @__PURE__ */ from_tree([[
+	var root_23 = /* @__PURE__ */ from_tree([[
 		"p",
 		{ class: "experiment-note" },
 		" "
 	]]);
-	var root_22 = /* @__PURE__ */ from_tree([
+	var root_24 = /* @__PURE__ */ from_tree([
 		[
 			"p",
 			{ class: "experiment-value" },
@@ -21639,40 +22452,40 @@
 			" "
 		]
 	], 1);
-	var root_23 = /* @__PURE__ */ from_tree([[
-		"p",
-		{ class: "experiment-note" },
-		" "
-	]]);
-	var root_24 = /* @__PURE__ */ from_tree([[
-		"p",
-		{ class: "experiment-note" },
-		" "
-	]]);
 	var root_25 = /* @__PURE__ */ from_tree([[
 		"p",
 		{ class: "experiment-note" },
 		" "
 	]]);
-	var root_26 = /* @__PURE__ */ from_tree([
-		[
-			"button",
-			{ class: "text-button" },
-			" "
-		],
-		" ",
-		,
-	], 1);
-	var root_27 = /* @__PURE__ */ from_tree([
-		[
-			"button",
-			{ class: "text-button" },
-			" "
-		],
-		" ",
-		,
-	], 1);
+	var root_26 = /* @__PURE__ */ from_tree([[
+		"p",
+		{ class: "experiment-note" },
+		" "
+	]]);
+	var root_27 = /* @__PURE__ */ from_tree([[
+		"p",
+		{ class: "experiment-note" },
+		" "
+	]]);
 	var root_28 = /* @__PURE__ */ from_tree([
+		[
+			"button",
+			{ class: "text-button" },
+			" "
+		],
+		" ",
+		,
+	], 1);
+	var root_29 = /* @__PURE__ */ from_tree([
+		[
+			"button",
+			{ class: "text-button" },
+			" "
+		],
+		" ",
+		,
+	], 1);
+	var root_30 = /* @__PURE__ */ from_tree([
 		[
 			"p",
 			{ class: "experiment-note" },
@@ -21681,7 +22494,7 @@
 		" ",
 		,
 	], 1);
-	var root_29 = /* @__PURE__ */ from_tree([[
+	var root_31 = /* @__PURE__ */ from_tree([[
 		"div",
 		null,
 		[
@@ -21695,7 +22508,7 @@
 			" "
 		]
 	]]);
-	var root_30 = /* @__PURE__ */ from_tree([
+	var root_32 = /* @__PURE__ */ from_tree([
 		[
 			"p",
 			{ class: "experiment-note" },
@@ -21704,17 +22517,17 @@
 		" ",
 		["dl", { class: "metric-list" }]
 	], 1);
-	var root_31 = /* @__PURE__ */ from_tree([[
-		"p",
-		{ class: "experiment-note" },
-		" "
-	]]);
-	var root_32 = /* @__PURE__ */ from_tree([[
-		"p",
-		{ class: "experiment-note" },
-		" "
-	]]);
 	var root_33 = /* @__PURE__ */ from_tree([[
+		"p",
+		{ class: "experiment-note" },
+		" "
+	]]);
+	var root_34 = /* @__PURE__ */ from_tree([[
+		"p",
+		{ class: "experiment-note" },
+		" "
+	]]);
+	var root_35 = /* @__PURE__ */ from_tree([[
 		"details",
 		{ class: "experiment-group" },
 		[
@@ -21741,7 +22554,7 @@
 			,
 		]
 	]]);
-	var root_34 = /* @__PURE__ */ from_tree([
+	var root_36 = /* @__PURE__ */ from_tree([
 		[
 			"details",
 			{
@@ -21866,7 +22679,7 @@
 		" ",
 		,
 	], 1);
-	var root_35 = /* @__PURE__ */ from_tree([
+	var root_37 = /* @__PURE__ */ from_tree([
 		,
 		,
 		" ",
@@ -21878,7 +22691,7 @@
 		" ",
 		,
 	], 1);
-	var root_36 = /* @__PURE__ */ from_tree([[
+	var root_38 = /* @__PURE__ */ from_tree([[
 		"div",
 		{ class: "panel-tabs experimental-panel" },
 		[
@@ -21894,7 +22707,7 @@
 			[
 				"span",
 				null,
-				" "
+				,
 			]
 		],
 		" ",
@@ -21928,14 +22741,47 @@
 			hour: "2-digit",
 			minute: "2-digit"
 		}) : null);
-		var div = root_36();
+		var div = root_38();
 		var div_1 = child(div);
 		var button = child(div_1);
 		var node = child(button);
 		Arrow_left(node, { size: 13 });
 		var text$2 = sibling(node);
 		reset(button);
-		var text_1 = only_child(sibling(button, 2), true);
+		var span = sibling(button, 2);
+		var node_1 = child(span);
+		var consequent = ($$anchor) => {
+			var text_1 = text();
+			template_effect(($0) => set_text(text_1, $0), [() => t("Демо-данные")]);
+			append($$anchor, text_1);
+		};
+		var consequent_1 = ($$anchor) => {
+			var text_2 = text();
+			template_effect(($0) => set_text(text_2, $0), [() => t("По выбранной ячейке")]);
+			append($$anchor, text_2);
+		};
+		var alternate = ($$anchor) => {
+			var fragment_2 = root_1$2();
+			var text_3 = first_child(fragment_2, true);
+			var node_2 = sibling(text_3);
+			var consequent_2 = ($$anchor) => {
+				var fragment_3 = root$2();
+				var text_4 = only_child(sibling(first_child(fragment_3)), true);
+				template_effect(($0) => set_text(text_4, $0), [() => t("устарел")]);
+				append($$anchor, fragment_3);
+			};
+			if_block(node_2, ($$render) => {
+				if (get$2(data)?.stale) $$render(consequent_2);
+			});
+			template_effect(($0) => set_text(text_3, $0), [() => `${t("Последний снимок")}${get$2(received) ? " · " + get$2(received) : ""}`]);
+			append($$anchor, fragment_2);
+		};
+		if_block(node_1, ($$render) => {
+			if ($$props.model.isDemo) $$render(consequent);
+			else if (get$2(tab) === "relations") $$render(consequent_1, 1);
+			else $$render(alternate, -1);
+		});
+		reset(span);
 		reset(div_1);
 		component(sibling(div_1, 2), () => Tabs, ($$anchor, Tabs_Root) => {
 			Tabs_Root($$anchor, {
@@ -21947,117 +22793,117 @@
 					set(tab, $$value, true);
 				},
 				children: ($$anchor, $$slotProps) => {
-					var fragment = root_35();
-					var node_2 = first_child(fragment);
+					var fragment_4 = root_37();
+					var node_4 = first_child(fragment_4);
 					{
 						let $0 = /* @__PURE__ */ user_derived(() => t("Экспериментальные функции"));
-						component(node_2, () => Tabs_list, ($$anchor, Tabs_List) => {
+						component(node_4, () => Tabs_list, ($$anchor, Tabs_List) => {
 							Tabs_List($$anchor, {
 								class: "ui-tabs experiment-tabs",
 								get "aria-label"() {
 									return get$2($0);
 								},
 								children: ($$anchor, $$slotProps) => {
-									var fragment_1 = root$2();
-									var node_3 = first_child(fragment_1);
-									component(node_3, () => Tabs_trigger, ($$anchor, Tabs_Trigger) => {
+									var fragment_5 = root_2$2();
+									var node_5 = first_child(fragment_5);
+									component(node_5, () => Tabs_trigger, ($$anchor, Tabs_Trigger) => {
 										Tabs_Trigger($$anchor, {
 											class: "ui-tab",
 											value: "metrics",
 											children: ($$anchor, $$slotProps) => {
 												next$1();
-												var text_2 = text();
-												template_effect(($0) => set_text(text_2, $0), [() => t("Счётчики")]);
-												append($$anchor, text_2);
-											},
-											$$slots: { default: true }
-										});
-									});
-									var node_4 = sibling(node_3, 2);
-									component(node_4, () => Tabs_trigger, ($$anchor, Tabs_Trigger_1) => {
-										Tabs_Trigger_1($$anchor, {
-											class: "ui-tab",
-											value: "functions",
-											children: ($$anchor, $$slotProps) => {
-												next$1();
-												var text_3 = text();
-												template_effect(($0) => set_text(text_3, $0), [() => t("Функции")]);
-												append($$anchor, text_3);
-											},
-											$$slots: { default: true }
-										});
-									});
-									var node_5 = sibling(node_4, 2);
-									component(node_5, () => Tabs_trigger, ($$anchor, Tabs_Trigger_2) => {
-										Tabs_Trigger_2($$anchor, {
-											class: "ui-tab",
-											value: "relations",
-											children: ($$anchor, $$slotProps) => {
-												next$1();
-												var text_4 = text();
-												template_effect(($0) => set_text(text_4, $0), [() => t("Связи")]);
-												append($$anchor, text_4);
-											},
-											$$slots: { default: true }
-										});
-									});
-									var node_6 = sibling(node_5, 2);
-									component(node_6, () => Tabs_trigger, ($$anchor, Tabs_Trigger_3) => {
-										Tabs_Trigger_3($$anchor, {
-											class: "ui-tab",
-											value: "tools",
-											children: ($$anchor, $$slotProps) => {
-												next$1();
 												var text_5 = text();
-												template_effect(($0) => set_text(text_5, $0), [() => t("Инструменты")]);
+												template_effect(($0) => set_text(text_5, $0), [() => t("Счётчики")]);
 												append($$anchor, text_5);
 											},
 											$$slots: { default: true }
 										});
 									});
-									SelectionIndicator(sibling(node_6, 2), {
+									var node_6 = sibling(node_5, 2);
+									component(node_6, () => Tabs_trigger, ($$anchor, Tabs_Trigger_1) => {
+										Tabs_Trigger_1($$anchor, {
+											class: "ui-tab",
+											value: "functions",
+											children: ($$anchor, $$slotProps) => {
+												next$1();
+												var text_6 = text();
+												template_effect(($0) => set_text(text_6, $0), [() => t("Функции")]);
+												append($$anchor, text_6);
+											},
+											$$slots: { default: true }
+										});
+									});
+									var node_7 = sibling(node_6, 2);
+									component(node_7, () => Tabs_trigger, ($$anchor, Tabs_Trigger_2) => {
+										Tabs_Trigger_2($$anchor, {
+											class: "ui-tab",
+											value: "relations",
+											children: ($$anchor, $$slotProps) => {
+												next$1();
+												var text_7 = text();
+												template_effect(($0) => set_text(text_7, $0), [() => t("Связи")]);
+												append($$anchor, text_7);
+											},
+											$$slots: { default: true }
+										});
+									});
+									var node_8 = sibling(node_7, 2);
+									component(node_8, () => Tabs_trigger, ($$anchor, Tabs_Trigger_3) => {
+										Tabs_Trigger_3($$anchor, {
+											class: "ui-tab",
+											value: "tools",
+											children: ($$anchor, $$slotProps) => {
+												next$1();
+												var text_8 = text();
+												template_effect(($0) => set_text(text_8, $0), [() => t("Инструменты")]);
+												append($$anchor, text_8);
+											},
+											$$slots: { default: true }
+										});
+									});
+									SelectionIndicator(sibling(node_8, 2), {
 										selector: "[role=\"tab\"][data-state=\"active\"]",
 										get active() {
 											return get$2(tab);
 										}
 									});
-									append($$anchor, fragment_1);
+									append($$anchor, fragment_5);
 								},
 								$$slots: { default: true }
 							});
 						});
 					}
-					var node_8 = sibling(node_2, 2);
-					component(node_8, () => Tabs_content, ($$anchor, Tabs_Content) => {
+					var node_10 = sibling(node_4, 2);
+					component(node_10, () => Tabs_content, ($$anchor, Tabs_Content) => {
 						Tabs_Content($$anchor, {
 							class: "relations-content",
 							value: "relations",
 							children: ($$anchor, $$slotProps) => {
-								var fragment_6 = comment();
-								var node_9 = first_child(fragment_6);
-								var consequent = ($$anchor) => {
+								var fragment_10 = comment();
+								var node_11 = first_child(fragment_10);
+								var consequent_3 = ($$anchor) => {
 									RelationsPanel($$anchor, { get model() {
 										return $$props.model;
 									} });
 								};
-								if_block(node_9, ($$render) => {
-									if (get$2(tab) === "relations" && $$props.model.panelOpen) $$render(consequent);
+								if_block(node_11, ($$render) => {
+									if (get$2(tab) === "relations" && $$props.model.panelOpen) $$render(consequent_3);
 								});
-								append($$anchor, fragment_6);
+								append($$anchor, fragment_10);
 							},
 							$$slots: { default: true }
 						});
 					});
-					var node_10 = sibling(node_8, 2);
-					component(node_10, () => Tabs_content, ($$anchor, Tabs_Content_1) => {
+					var node_12 = sibling(node_10, 2);
+					component(node_12, () => Tabs_content, ($$anchor, Tabs_Content_1) => {
 						Tabs_Content_1($$anchor, {
 							class: "experiment-content",
 							value: "metrics",
 							children: ($$anchor, $$slotProps) => {
-								var fragment_8 = root_10();
-								var div_2 = first_child(fragment_8);
-								var node_11 = child(div_2);
-								component(node_11, () => Select, ($$anchor, Select_Root) => {
+								var fragment_12 = root_12();
+								var div_2 = first_child(fragment_12);
+								var node_13 = child(div_2);
+								component(node_13, () => Select, ($$anchor, Select_Root) => {
 									Select_Root($$anchor, {
 										type: "single",
 										get items() {
@@ -22071,11 +22917,11 @@
 											set(phase, $$value, true);
 										},
 										children: ($$anchor, $$slotProps) => {
-											var fragment_9 = root_3$1();
-											var node_12 = first_child(fragment_9);
+											var fragment_13 = root_5$1();
+											var node_14 = first_child(fragment_13);
 											{
 												let $0 = /* @__PURE__ */ user_derived(() => t("Фаза экспериментальных метрик"));
-												component(node_12, () => Select_trigger, ($$anchor, Select_Trigger) => {
+												component(node_14, () => Select_trigger, ($$anchor, Select_Trigger) => {
 													Select_Trigger($$anchor, {
 														class: "period-select",
 														get "aria-label"() {
@@ -22083,50 +22929,50 @@
 														},
 														children: ($$anchor, $$slotProps) => {
 															next$1();
-															var fragment_10 = root_1$2();
-															var text_6 = first_child(fragment_10, true);
-															Chevron_down(sibling(text_6), { size: 12 });
-															template_effect(() => set_text(text_6, get$2(selected).label));
-															append($$anchor, fragment_10);
+															var fragment_14 = root_3$1();
+															var text_9 = first_child(fragment_14, true);
+															Chevron_down(sibling(text_9), { size: 12 });
+															template_effect(() => set_text(text_9, get$2(selected).label));
+															append($$anchor, fragment_14);
 														},
 														$$slots: { default: true }
 													});
 												});
 											}
-											component(sibling(node_12, 2), () => Portal, ($$anchor, Select_Portal) => {
+											component(sibling(node_14, 2), () => Portal, ($$anchor, Select_Portal) => {
 												Select_Portal($$anchor, {
 													children: ($$anchor, $$slotProps) => {
-														var fragment_11 = comment();
-														component(first_child(fragment_11), () => Select_content, ($$anchor, Select_Content) => {
+														var fragment_15 = comment();
+														component(first_child(fragment_15), () => Select_content, ($$anchor, Select_Content) => {
 															Select_Content($$anchor, {
 																class: "ui-select-menu",
 																sideOffset: 6,
 																children: ($$anchor, $$slotProps) => {
-																	var fragment_12 = comment();
-																	component(first_child(fragment_12), () => Select_viewport, ($$anchor, Select_Viewport) => {
+																	var fragment_16 = comment();
+																	component(first_child(fragment_16), () => Select_viewport, ($$anchor, Select_Viewport) => {
 																		Select_Viewport($$anchor, {
 																			children: ($$anchor, $$slotProps) => {
-																				var fragment_13 = comment();
-																				each(first_child(fragment_13), 17, () => get$2(items), (item) => item.value, ($$anchor, item) => {
-																					var fragment_14 = comment();
-																					var node_18 = first_child(fragment_14);
+																				var fragment_17 = comment();
+																				each(first_child(fragment_17), 17, () => get$2(items), (item) => item.value, ($$anchor, item) => {
+																					var fragment_18 = comment();
+																					var node_20 = first_child(fragment_18);
 																					{
 																						const children = ($$anchor, $$arg0) => {
 																							let selected = () => ($$arg0?.()).selected;
-																							var fragment_15 = root_2$2();
-																							var span_1 = first_child(fragment_15);
-																							var text_7 = only_child(span_1, true);
-																							var node_19 = sibling(span_1);
-																							var consequent_1 = ($$anchor) => {
+																							var fragment_19 = root_4$1();
+																							var span_2 = first_child(fragment_19);
+																							var text_10 = only_child(span_2, true);
+																							var node_21 = sibling(span_2);
+																							var consequent_4 = ($$anchor) => {
 																								Check($$anchor, { size: 12 });
 																							};
-																							if_block(node_19, ($$render) => {
-																								if (selected()) $$render(consequent_1);
+																							if_block(node_21, ($$render) => {
+																								if (selected()) $$render(consequent_4);
 																							});
-																							template_effect(() => set_text(text_7, get$2(item).label));
-																							append($$anchor, fragment_15);
+																							template_effect(() => set_text(text_10, get$2(item).label));
+																							append($$anchor, fragment_19);
 																						};
-																						component(node_18, () => Select_item, ($$anchor, Select_Item) => {
+																						component(node_20, () => Select_item, ($$anchor, Select_Item) => {
 																							Select_Item($$anchor, {
 																								class: "ui-select-item",
 																								get value() {
@@ -22140,33 +22986,33 @@
 																							});
 																						});
 																					}
-																					append($$anchor, fragment_14);
+																					append($$anchor, fragment_18);
 																				});
-																				append($$anchor, fragment_13);
+																				append($$anchor, fragment_17);
 																			},
 																			$$slots: { default: true }
 																		});
 																	});
-																	append($$anchor, fragment_12);
+																	append($$anchor, fragment_16);
 																},
 																$$slots: { default: true }
 															});
 														});
-														append($$anchor, fragment_11);
+														append($$anchor, fragment_15);
 													},
 													$$slots: { default: true }
 												});
 											});
-											append($$anchor, fragment_9);
+											append($$anchor, fragment_13);
 										},
 										$$slots: { default: true }
 									});
 								});
-								var node_20 = sibling(node_11, 2);
+								var node_22 = sibling(node_13, 2);
 								{
 									let $0 = /* @__PURE__ */ user_derived(() => t("Область метрик"));
 									let $1 = /* @__PURE__ */ user_derived(() => t("Агрегаты последнего native-снимка, включая зависимые листы. Не показатели выбранной ячейки. Пакеты могут повторять накопленные числа, поэтому здесь нет суммы за сессию. Неполная сумма помечена звёздочкой."));
-									MetricHelp(node_20, {
+									MetricHelp(node_22, {
 										get label() {
 											return get$2($0);
 										},
@@ -22176,52 +23022,52 @@
 									});
 								}
 								reset(div_2);
-								var node_21 = sibling(div_2, 2);
-								var consequent_2 = ($$anchor) => {
-									var p = root_4$1();
-									var text_8 = only_child(p, true);
-									template_effect(($0) => set_text(text_8, $0), [() => t("Пока нет снимка поддерживаемого движка. Запустите расчёт.")]);
+								var node_23 = sibling(div_2, 2);
+								var consequent_5 = ($$anchor) => {
+									var p = root_6$1();
+									var text_11 = only_child(p, true);
+									template_effect(($0) => set_text(text_11, $0), [() => t("Пока нет снимка поддерживаемого движка. Запустите расчёт.")]);
 									append($$anchor, p);
 								};
-								if_block(node_21, ($$render) => {
-									if (!get$2(data)) $$render(consequent_2);
-								});
-								var node_22 = sibling(node_21, 2);
-								var consequent_3 = ($$anchor) => {
-									var p_1 = root_5$1();
-									var text_9 = only_child(p_1, true);
-									template_effect(() => set_text(text_9, get$2(data).error));
-									append($$anchor, p_1);
-								};
-								if_block(node_22, ($$render) => {
-									if (get$2(data)?.error) $$render(consequent_3);
-								});
-								var node_23 = sibling(node_22, 2);
-								var consequent_4 = ($$anchor) => {
-									var p_2 = root_6$1();
-									var text_10 = only_child(p_2, true);
-									template_effect(() => set_text(text_10, unverified));
-									append($$anchor, p_2);
-								};
 								if_block(node_23, ($$render) => {
-									if (get$2(data)?.engineVerified === false) $$render(consequent_4);
+									if (!get$2(data)) $$render(consequent_5);
 								});
 								var node_24 = sibling(node_23, 2);
-								each(node_24, 19, () => metricGroups, (group) => group.id, ($$anchor, group, index) => {
-									var details = root_9();
+								var consequent_6 = ($$anchor) => {
+									var p_1 = root_7();
+									var text_12 = only_child(p_1, true);
+									template_effect(() => set_text(text_12, get$2(data).error));
+									append($$anchor, p_1);
+								};
+								if_block(node_24, ($$render) => {
+									if (get$2(data)?.error) $$render(consequent_6);
+								});
+								var node_25 = sibling(node_24, 2);
+								var consequent_7 = ($$anchor) => {
+									var p_2 = root_8();
+									var text_13 = only_child(p_2, true);
+									template_effect(() => set_text(text_13, unverified));
+									append($$anchor, p_2);
+								};
+								if_block(node_25, ($$render) => {
+									if (get$2(data)?.engineVerified === false) $$render(consequent_7);
+								});
+								var node_26 = sibling(node_25, 2);
+								each(node_26, 19, () => metricGroups, (group) => group.id, ($$anchor, group, index) => {
+									var details = root_11();
 									var summary_1 = child(details);
-									var text_11 = child(summary_1, true);
-									Chevron_down(sibling(text_11), { size: 13 });
+									var text_14 = child(summary_1, true);
+									Chevron_down(sibling(text_14), { size: 13 });
 									reset(summary_1);
 									var dl = sibling(summary_1, 2);
 									each(dl, 21, () => metrics.filter((metric) => metric.group === get$2(group).id), (metric) => metric.id, ($$anchor, metric) => {
-										var div_3 = root_8();
+										var div_3 = root_10();
 										var dt = child(div_3);
-										var text_12 = child(dt, true);
-										var node_26 = sibling(text_12);
+										var text_15 = child(dt, true);
+										var node_28 = sibling(text_15);
 										{
 											let $0 = /* @__PURE__ */ user_derived(() => get$2(metric).help + " " + t("— означает, что Google не передал безопасное числовое значение. * — сумма только фаз, в которых показатель доступен."));
-											MetricHelp(node_26, {
+											MetricHelp(node_28, {
 												get label() {
 													return get$2(metric).label;
 												},
@@ -22232,21 +23078,21 @@
 										}
 										reset(dt);
 										var dd = sibling(dt, 2);
-										var text_13 = child(dd, true);
-										var node_27 = sibling(text_13);
-										var consequent_5 = ($$anchor) => {
-											var span_2 = root_7();
-											template_effect(($0) => set_attribute(span_2, "title", $0), [() => t("Данные есть не во всех выбранных фазах")]);
-											append($$anchor, span_2);
+										var text_16 = child(dd, true);
+										var node_29 = sibling(text_16);
+										var consequent_8 = ($$anchor) => {
+											var span_3 = root_9();
+											template_effect(($0) => set_attribute(span_3, "title", $0), [() => t("Данные есть не во всех выбранных фазах")]);
+											append($$anchor, span_3);
 										};
-										if_block(node_27, ($$render) => {
-											if (get$2(summary)[get$2(metric).id].partial) $$render(consequent_5);
+										if_block(node_29, ($$render) => {
+											if (get$2(summary)[get$2(metric).id].partial) $$render(consequent_8);
 										});
 										reset(dd);
 										reset(div_3);
 										template_effect(($0) => {
-											set_text(text_12, get$2(metric).label);
-											set_text(text_13, $0);
+											set_text(text_15, get$2(metric).label);
+											set_text(text_16, $0);
 										}, [() => number(get$2(summary)[get$2(metric).id].value)]);
 										append($$anchor, div_3);
 									});
@@ -22254,32 +23100,32 @@
 									reset(details);
 									template_effect(() => {
 										details.open = get$2(index) < 2;
-										set_text(text_11, get$2(group).label);
+										set_text(text_14, get$2(group).label);
 									});
 									append($$anchor, details);
 								});
-								var text_14 = only_child(sibling(node_24, 2), true);
-								template_effect(($0) => set_text(text_14, $0), [() => t("— нет данных · * неполная сумма")]);
-								append($$anchor, fragment_8);
+								var text_17 = only_child(sibling(node_26, 2), true);
+								template_effect(($0) => set_text(text_17, $0), [() => t("— нет данных · * неполная сумма")]);
+								append($$anchor, fragment_12);
 							},
 							$$slots: { default: true }
 						});
 					});
-					var node_28 = sibling(node_10, 2);
-					component(node_28, () => Tabs_content, ($$anchor, Tabs_Content_2) => {
+					var node_30 = sibling(node_12, 2);
+					component(node_30, () => Tabs_content, ($$anchor, Tabs_Content_2) => {
 						Tabs_Content_2($$anchor, {
 							class: "experiment-content",
 							value: "functions",
 							children: ($$anchor, $$slotProps) => {
-								var fragment_17 = root_16();
-								var div_4 = first_child(fragment_17);
-								var span_3 = child(div_4);
-								var text_15 = only_child(span_3, true);
-								var node_29 = sibling(span_3);
+								var fragment_21 = root_18();
+								var div_4 = first_child(fragment_21);
+								var span_4 = child(div_4);
+								var text_18 = only_child(span_4, true);
+								var node_31 = sibling(span_4);
 								{
 									let $0 = /* @__PURE__ */ user_derived(() => t("Частоты функций"));
 									let $1 = /* @__PURE__ */ user_derived(() => t("Количество срабатываний в инструментированных путях движка. Есть служебные имена. Это не полный счётчик операций и не время функции; адресной привязки нет. Сбор зависит от отдельной настройки Google, не только от таймеров."));
-									MetricHelp(node_29, {
+									MetricHelp(node_31, {
 										get label() {
 											return get$2($0);
 										},
@@ -22289,122 +23135,84 @@
 									});
 								}
 								reset(div_4);
-								var node_30 = sibling(div_4, 2);
-								var consequent_6 = ($$anchor) => {
-									var ol = root_12();
+								var node_32 = sibling(div_4, 2);
+								var consequent_9 = ($$anchor) => {
+									var ol = root_14();
 									each(ol, 23, () => get$2(functions), (entry, index) => `${entry.type}:${entry.name}:${index}`, ($$anchor, entry) => {
-										var li = root_11();
+										var li = root_13();
 										var div_5 = child(li);
 										var code = child(div_5);
-										var text_16 = only_child(code, true);
-										var text_17 = only_child(sibling(code), true);
+										var text_19 = only_child(code, true);
+										var text_20 = only_child(sibling(code), true);
 										reset(div_5);
-										var text_18 = only_child(sibling(div_5), true);
+										var text_21 = only_child(sibling(div_5), true);
 										reset(li);
 										template_effect(($0, $1) => {
-											set_text(text_16, get$2(entry).name);
-											set_text(text_17, $0);
-											set_text(text_18, $1);
+											set_text(text_19, get$2(entry).name);
+											set_text(text_20, $0);
+											set_text(text_21, $1);
 										}, [() => experimentalPhaseName(get$2(entry).type), () => number(get$2(entry).count)]);
 										append($$anchor, li);
 									});
 									reset(ol);
 									append($$anchor, ol);
 								};
-								var alternate = ($$anchor) => {
-									var p_4 = root_13();
-									var text_19 = only_child(p_4);
-									template_effect(($0, $1) => set_text(text_19, `${$0 ?? ""} ${$1 ?? ""}`), [() => get$2(data)?.functions?.some((group) => group.available) ? t("В снимке нет записей частот.") : t("Google не передал частоты функций."), () => t("Настройки движка автоматически не меняются.")]);
+								var alternate_1 = ($$anchor) => {
+									var p_4 = root_15();
+									var text_22 = only_child(p_4);
+									template_effect(($0, $1) => set_text(text_22, `${$0 ?? ""} ${$1 ?? ""}`), [() => get$2(data)?.functions?.some((group) => group.available) ? t("В снимке нет записей частот.") : t("Google не передал частоты функций."), () => t("Настройки движка автоматически не меняются.")]);
 									append($$anchor, p_4);
 								};
-								if_block(node_30, ($$render) => {
-									if (get$2(functions).length) $$render(consequent_6);
-									else $$render(alternate, -1);
+								if_block(node_32, ($$render) => {
+									if (get$2(functions).length) $$render(consequent_9);
+									else $$render(alternate_1, -1);
 								});
-								var node_31 = sibling(node_30, 2);
-								var consequent_7 = ($$anchor) => {
-									var p_5 = root_14();
-									var text_20 = only_child(p_5, true);
-									template_effect(() => set_text(text_20, unverified));
+								var node_33 = sibling(node_32, 2);
+								var consequent_10 = ($$anchor) => {
+									var p_5 = root_16();
+									var text_23 = only_child(p_5, true);
+									template_effect(() => set_text(text_23, unverified));
 									append($$anchor, p_5);
 								};
-								if_block(node_31, ($$render) => {
-									if (get$2(data)?.engineVerified === false) $$render(consequent_7);
+								if_block(node_33, ($$render) => {
+									if (get$2(data)?.engineVerified === false) $$render(consequent_10);
 								});
-								var node_32 = sibling(node_31, 2);
-								var consequent_8 = ($$anchor) => {
-									var p_6 = root_15();
-									var text_21 = only_child(p_6, true);
-									template_effect(($0) => set_text(text_21, $0), [() => t("Часть записей имеет неизвестный формат.")]);
+								var node_34 = sibling(node_33, 2);
+								var consequent_11 = ($$anchor) => {
+									var p_6 = root_17();
+									var text_24 = only_child(p_6, true);
+									template_effect(($0) => set_text(text_24, $0), [() => t("Часть записей имеет неизвестный формат.")]);
 									append($$anchor, p_6);
 								};
 								var d = /* @__PURE__ */ user_derived(() => get$2(data)?.functions?.some((group) => group.malformed));
-								if_block(node_32, ($$render) => {
-									if (get$2(d)) $$render(consequent_8);
+								if_block(node_34, ($$render) => {
+									if (get$2(d)) $$render(consequent_11);
 								});
-								template_effect(($0) => set_text(text_15, $0), [() => t("Срабатывания функций")]);
-								append($$anchor, fragment_17);
+								template_effect(($0) => set_text(text_18, $0), [() => t("Срабатывания функций")]);
+								append($$anchor, fragment_21);
 							},
 							$$slots: { default: true }
 						});
 					});
-					component(sibling(node_28, 2), () => Tabs_content, ($$anchor, Tabs_Content_3) => {
+					component(sibling(node_30, 2), () => Tabs_content, ($$anchor, Tabs_Content_3) => {
 						Tabs_Content_3($$anchor, {
 							class: "experiment-content",
 							value: "tools",
 							children: ($$anchor, $$slotProps) => {
-								var fragment_18 = root_34();
-								var details_1 = first_child(fragment_18);
+								var fragment_22 = root_36();
+								var details_1 = first_child(fragment_22);
 								var summary_2 = child(details_1);
-								var text_22 = child(summary_2, true);
-								Chevron_down(sibling(text_22), { size: 13 });
+								var text_25 = child(summary_2, true);
+								Chevron_down(sibling(text_25), { size: 13 });
 								reset(summary_2);
 								var dl_1 = sibling(summary_2, 2);
 								var div_6 = child(dl_1);
 								var dt_1 = child(div_6);
-								var text_23 = child(dt_1, true);
-								var node_35 = sibling(text_23);
+								var text_26 = child(dt_1, true);
+								var node_37 = sibling(text_26);
 								{
 									let $0 = /* @__PURE__ */ user_derived(() => t("Прогресс"));
 									let $1 = /* @__PURE__ */ user_derived(() => t("Последний полученный сигнал расчёта. Процент относится к очереди Google, а не только к выбранному листу. Он не доказывает завершение отрисовки или сохранения."));
-									MetricHelp(node_35, {
-										get label() {
-											return get$2($0);
-										},
-										get text() {
-											return get$2($1);
-										}
-									});
-								}
-								reset(dt_1);
-								var text_24 = only_child(sibling(dt_1), true);
-								reset(div_6);
-								var div_7 = sibling(div_6, 2);
-								var dt_2 = child(div_7);
-								var text_25 = child(dt_2, true);
-								var node_36 = sibling(text_25);
-								{
-									let $0 = /* @__PURE__ */ user_derived(() => t("Оценка объёма"));
-									let $1 = /* @__PURE__ */ user_derived(() => t("numDirtyCellsEstimate из сигнала прогресса. Это оценка предстоящей работы, не точное число операций."));
-									MetricHelp(node_36, {
-										get label() {
-											return get$2($0);
-										},
-										get text() {
-											return get$2($1);
-										}
-									});
-								}
-								reset(dt_2);
-								var text_26 = only_child(sibling(dt_2), true);
-								reset(div_7);
-								var div_8 = sibling(div_7, 2);
-								var dt_3 = child(div_8);
-								var text_27 = child(dt_3, true);
-								var node_37 = sibling(text_27);
-								{
-									let $0 = /* @__PURE__ */ user_derived(() => t("Получение Wasm"));
-									let $1 = /* @__PURE__ */ user_derived(() => t("Разность нативных отметок начала и завершения получения Wasm. Производная длительность старта, не время формул."));
 									MetricHelp(node_37, {
 										get label() {
 											return get$2($0);
@@ -22414,16 +23222,16 @@
 										}
 									});
 								}
-								reset(dt_3);
-								var text_28 = only_child(sibling(dt_3), true);
-								reset(div_8);
-								var div_9 = sibling(div_8, 2);
-								var dt_4 = child(div_9);
-								var text_29 = child(dt_4, true);
-								var node_38 = sibling(text_29);
+								reset(dt_1);
+								var text_27 = only_child(sibling(dt_1), true);
+								reset(div_6);
+								var div_7 = sibling(div_6, 2);
+								var dt_2 = child(div_7);
+								var text_28 = child(dt_2, true);
+								var node_38 = sibling(text_28);
 								{
-									let $0 = /* @__PURE__ */ user_derived(() => t("Создание Wasm"));
-									let $1 = /* @__PURE__ */ user_derived(() => t("Нативная длительность instantiateStreaming при запуске движка. Если подключились поздно, данных может не быть."));
+									let $0 = /* @__PURE__ */ user_derived(() => t("Оценка объёма"));
+									let $1 = /* @__PURE__ */ user_derived(() => t("numDirtyCellsEstimate из сигнала прогресса. Это оценка предстоящей работы, не точное число операций."));
 									MetricHelp(node_38, {
 										get label() {
 											return get$2($0);
@@ -22433,16 +23241,16 @@
 										}
 									});
 								}
-								reset(dt_4);
-								var text_30 = only_child(sibling(dt_4), true);
-								reset(div_9);
-								var div_10 = sibling(div_9, 2);
-								var dt_5 = child(div_10);
-								var text_31 = child(dt_5, true);
-								var node_39 = sibling(text_31);
+								reset(dt_2);
+								var text_29 = only_child(sibling(dt_2), true);
+								reset(div_7);
+								var div_8 = sibling(div_7, 2);
+								var dt_3 = child(div_8);
+								var text_30 = child(dt_3, true);
+								var node_39 = sibling(text_30);
 								{
-									let $0 = /* @__PURE__ */ user_derived(() => t("Инициализация"));
-									let $1 = /* @__PURE__ */ user_derived(() => t("Нативная длительность начальной инициализации Worker. Не полное время загрузки таблицы."));
+									let $0 = /* @__PURE__ */ user_derived(() => t("Получение Wasm"));
+									let $1 = /* @__PURE__ */ user_derived(() => t("Разность нативных отметок начала и завершения получения Wasm. Производная длительность старта, не время формул."));
 									MetricHelp(node_39, {
 										get label() {
 											return get$2($0);
@@ -22452,16 +23260,16 @@
 										}
 									});
 								}
-								reset(dt_5);
-								var text_32 = only_child(sibling(dt_5), true);
-								reset(div_10);
-								var div_11 = sibling(div_10, 2);
-								var dt_6 = child(div_11);
-								var text_33 = child(dt_6, true);
-								var node_40 = sibling(text_33);
+								reset(dt_3);
+								var text_31 = only_child(sibling(dt_3), true);
+								reset(div_8);
+								var div_9 = sibling(div_8, 2);
+								var dt_4 = child(div_9);
+								var text_32 = child(dt_4, true);
+								var node_40 = sibling(text_32);
 								{
-									let $0 = /* @__PURE__ */ user_derived(() => t("Ошибки создания"));
-									let $1 = /* @__PURE__ */ user_derived(() => t("Число неудачных попыток инстанцирования Wasm при старте. Отсутствие поля не равно нулю."));
+									let $0 = /* @__PURE__ */ user_derived(() => t("Создание Wasm"));
+									let $1 = /* @__PURE__ */ user_derived(() => t("Нативная длительность instantiateStreaming при запуске движка. Если подключились поздно, данных может не быть."));
 									MetricHelp(node_40, {
 										get label() {
 											return get$2($0);
@@ -22471,18 +23279,56 @@
 										}
 									});
 								}
+								reset(dt_4);
+								var text_33 = only_child(sibling(dt_4), true);
+								reset(div_9);
+								var div_10 = sibling(div_9, 2);
+								var dt_5 = child(div_10);
+								var text_34 = child(dt_5, true);
+								var node_41 = sibling(text_34);
+								{
+									let $0 = /* @__PURE__ */ user_derived(() => t("Инициализация"));
+									let $1 = /* @__PURE__ */ user_derived(() => t("Нативная длительность начальной инициализации Worker. Не полное время загрузки таблицы."));
+									MetricHelp(node_41, {
+										get label() {
+											return get$2($0);
+										},
+										get text() {
+											return get$2($1);
+										}
+									});
+								}
+								reset(dt_5);
+								var text_35 = only_child(sibling(dt_5), true);
+								reset(div_10);
+								var div_11 = sibling(div_10, 2);
+								var dt_6 = child(div_11);
+								var text_36 = child(dt_6, true);
+								var node_42 = sibling(text_36);
+								{
+									let $0 = /* @__PURE__ */ user_derived(() => t("Ошибки создания"));
+									let $1 = /* @__PURE__ */ user_derived(() => t("Число неудачных попыток инстанцирования Wasm при старте. Отсутствие поля не равно нулю."));
+									MetricHelp(node_42, {
+										get label() {
+											return get$2($0);
+										},
+										get text() {
+											return get$2($1);
+										}
+									});
+								}
 								reset(dt_6);
-								var text_34 = only_child(sibling(dt_6), true);
+								var text_37 = only_child(sibling(dt_6), true);
 								reset(div_11);
 								each(sibling(div_11, 2), 17, () => get$2(phases), (item) => item.index, ($$anchor, item) => {
-									var div_12 = root_17();
+									var div_12 = root_19();
 									var dt_7 = child(div_12);
-									var text_35 = child(dt_7, true);
-									var node_42 = sibling(text_35);
+									var text_38 = child(dt_7, true);
+									var node_44 = sibling(text_38);
 									{
 										let $0 = /* @__PURE__ */ user_derived(() => experimentalPhaseName(get$2(item).type));
 										let $1 = /* @__PURE__ */ user_derived(() => t("Нативное время фазы последнего снимка. Ожидание очереди и применение результатов сюда автоматически не добавляются."));
-										MetricHelp(node_42, {
+										MetricHelp(node_44, {
 											get label() {
 												return get$2($0);
 											},
@@ -22492,28 +23338,28 @@
 										});
 									}
 									reset(dt_7);
-									var text_36 = only_child(sibling(dt_7), true);
+									var text_39 = only_child(sibling(dt_7), true);
 									reset(div_12);
 									template_effect(($0, $1) => {
-										set_text(text_35, $0);
-										set_text(text_36, $1);
+										set_text(text_38, $0);
+										set_text(text_39, $1);
 									}, [() => experimentalPhaseName(get$2(item).type), () => formatTime(get$2(item).elapsedMs)]);
 									append($$anchor, div_12);
 								});
 								reset(dl_1);
-								var text_37 = only_child(sibling(dl_1, 2), true);
+								var text_40 = only_child(sibling(dl_1, 2), true);
 								reset(details_1);
 								each(sibling(details_1, 2), 17, () => experimentalTools, (tool) => tool.id, ($$anchor, tool) => {
-									var details_2 = root_33();
+									var details_2 = root_35();
 									var summary_3 = child(details_2);
-									var text_38 = child(summary_3, true);
-									Chevron_down(sibling(text_38), { size: 13 });
+									var text_41 = child(summary_3, true);
+									Chevron_down(sibling(text_41), { size: 13 });
 									reset(summary_3);
 									var div_13 = sibling(summary_3, 2);
 									var div_14 = child(div_13);
-									var span_5 = child(div_14);
-									var text_39 = only_child(span_5, true);
-									MetricHelp(sibling(span_5), {
+									var span_6 = child(div_14);
+									var text_42 = only_child(span_6, true);
+									MetricHelp(sibling(span_6), {
 										get label() {
 											return get$2(tool).label;
 										},
@@ -22522,187 +23368,187 @@
 										}
 									});
 									reset(div_14);
-									var node_46 = sibling(div_14, 2);
-									var consequent_11 = ($$anchor) => {
-										var fragment_19 = comment();
-										var node_47 = first_child(fragment_19);
-										var consequent_10 = ($$anchor) => {
-											var fragment_20 = root_20();
-											var p_8 = first_child(fragment_20);
-											var text_40 = only_child(p_8, true);
-											var node_48 = sibling(p_8, 2);
-											each(node_48, 17, () => get$2(tools).latency.entries, (entry) => entry.name, ($$anchor, entry) => {
-												var div_15 = root_18();
+									var node_48 = sibling(div_14, 2);
+									var consequent_14 = ($$anchor) => {
+										var fragment_23 = comment();
+										var node_49 = first_child(fragment_23);
+										var consequent_13 = ($$anchor) => {
+											var fragment_24 = root_22();
+											var p_8 = first_child(fragment_24);
+											var text_43 = only_child(p_8, true);
+											var node_50 = sibling(p_8, 2);
+											each(node_50, 17, () => get$2(tools).latency.entries, (entry) => entry.name, ($$anchor, entry) => {
+												var div_15 = root_20();
 												var code_1 = child(div_15);
-												var text_41 = only_child(code_1, true);
-												var text_42 = only_child(sibling(code_1), true);
+												var text_44 = only_child(code_1, true);
+												var text_45 = only_child(sibling(code_1), true);
 												reset(div_15);
 												template_effect(($0) => {
-													set_text(text_41, get$2(entry).name);
-													set_text(text_42, $0);
+													set_text(text_44, get$2(entry).name);
+													set_text(text_45, $0);
 												}, [() => get$2(entry).values.map((value) => String(value)).join(" · ")]);
 												append($$anchor, div_15);
 											});
-											var node_49 = sibling(node_48, 2);
-											var consequent_9 = ($$anchor) => {
-												var p_9 = root_19();
-												var text_43 = only_child(p_9, true);
-												template_effect(($0) => set_text(text_43, $0), [() => t("Показаны первые 1000 ключей журнала.")]);
+											var node_51 = sibling(node_50, 2);
+											var consequent_12 = ($$anchor) => {
+												var p_9 = root_21();
+												var text_46 = only_child(p_9, true);
+												template_effect(($0) => set_text(text_46, $0), [() => t("Показаны первые 1000 ключей журнала.")]);
 												append($$anchor, p_9);
 											};
-											if_block(node_49, ($$render) => {
-												if (get$2(tools).latency.truncated) $$render(consequent_9);
+											if_block(node_51, ($$render) => {
+												if (get$2(tools).latency.truncated) $$render(consequent_12);
 											});
-											template_effect(($0) => set_text(text_40, $0), [() => t("Исходные значения · единицы не установлены")]);
-											append($$anchor, fragment_20);
+											template_effect(($0) => set_text(text_43, $0), [() => t("Исходные значения · единицы не установлены")]);
+											append($$anchor, fragment_24);
 										};
-										var alternate_1 = ($$anchor) => {
-											var p_10 = root_21();
-											var text_44 = only_child(p_10, true);
-											template_effect(($0) => set_text(text_44, $0), [() => get$2(tools)?.latency?.reason ?? t("Журнал недоступен")]);
+										var alternate_2 = ($$anchor) => {
+											var p_10 = root_23();
+											var text_47 = only_child(p_10, true);
+											template_effect(($0) => set_text(text_47, $0), [() => get$2(tools)?.latency?.reason ?? t("Журнал недоступен")]);
 											append($$anchor, p_10);
 										};
-										if_block(node_47, ($$render) => {
-											if (get$2(tools)?.latency?.entries?.length) $$render(consequent_10);
-											else $$render(alternate_1, -1);
+										if_block(node_49, ($$render) => {
+											if (get$2(tools)?.latency?.entries?.length) $$render(consequent_13);
+											else $$render(alternate_2, -1);
 										});
-										append($$anchor, fragment_19);
+										append($$anchor, fragment_23);
 									};
-									var consequent_12 = ($$anchor) => {
-										var fragment_21 = root_22();
-										var p_11 = first_child(fragment_21);
-										var text_45 = only_child(p_11, true);
+									var consequent_15 = ($$anchor) => {
+										var fragment_25 = root_24();
+										var p_11 = first_child(fragment_25);
+										var text_48 = only_child(p_11, true);
 										var p_12 = sibling(p_11, 2);
-										var text_46 = only_child(p_12, true);
+										var text_49 = only_child(p_12, true);
 										var button_1 = sibling(p_12, 2);
-										var text_47 = only_child(button_1, true);
+										var text_50 = only_child(button_1, true);
 										template_effect(($0, $1, $2) => {
-											set_text(text_45, $0);
-											set_text(text_46, $1);
-											set_text(text_47, $2);
+											set_text(text_48, $0);
+											set_text(text_49, $1);
+											set_text(text_50, $2);
 										}, [
 											() => get$2(tools)?.modelSize?.bytes == null ? "—" : t("{bytes} Б", { bytes: number(get$2(tools).modelSize.bytes) }),
 											() => get$2(tools)?.modelSize?.reason ?? t("Из кэша панели Google · время получения неизвестно"),
 											() => t("Открыть панель Google")
 										]);
 										delegated("click", button_1, () => $$props.model.openGoogle());
-										append($$anchor, fragment_21);
+										append($$anchor, fragment_25);
 									};
-									var consequent_15 = ($$anchor) => {
-										var fragment_22 = root_28();
-										var p_13 = first_child(fragment_22);
-										var text_48 = only_child(p_13, true);
-										var node_50 = sibling(p_13, 2);
-										var consequent_13 = ($$anchor) => {
-											var p_14 = root_23();
-											var text_49 = only_child(p_14, true);
-											template_effect(($0) => set_text(text_49, $0), [() => t("Доступно в Google Таблицах после обновления скрипта.")]);
+									var consequent_18 = ($$anchor) => {
+										var fragment_26 = root_30();
+										var p_13 = first_child(fragment_26);
+										var text_51 = only_child(p_13, true);
+										var node_52 = sibling(p_13, 2);
+										var consequent_16 = ($$anchor) => {
+											var p_14 = root_25();
+											var text_52 = only_child(p_14, true);
+											template_effect(($0) => set_text(text_52, $0), [() => t("Доступно в Google Таблицах после обновления скрипта.")]);
 											append($$anchor, p_14);
 										};
-										var alternate_2 = ($$anchor) => {
-											var fragment_23 = root_27();
-											var button_2 = first_child(fragment_23);
-											var text_50 = only_child(button_2, true);
-											var node_51 = sibling(button_2, 2);
-											var consequent_14 = ($$anchor) => {
-												var fragment_24 = root_26();
-												var button_3 = first_child(fragment_24);
-												var text_51 = only_child(button_3, true);
+										var alternate_3 = ($$anchor) => {
+											var fragment_27 = root_29();
+											var button_2 = first_child(fragment_27);
+											var text_53 = only_child(button_2, true);
+											var node_53 = sibling(button_2, 2);
+											var consequent_17 = ($$anchor) => {
+												var fragment_28 = root_28();
+												var button_3 = first_child(fragment_28);
+												var text_54 = only_child(button_3, true);
 												each(sibling(button_3, 2), 17, () => $$props.model.debugControls.controls, (control) => control.id, ($$anchor, control) => {
-													var p_15 = root_24();
-													var text_52 = only_child(p_15);
-													template_effect(($0) => set_text(text_52, `${get$2(control).label ?? ""} · ${$0 ?? ""}`), [() => get$2(control).visible ? t("показано") : t("скрыто родительским элементом")]);
+													var p_15 = root_26();
+													var text_55 = only_child(p_15);
+													template_effect(($0) => set_text(text_55, `${get$2(control).label ?? ""} · ${$0 ?? ""}`), [() => get$2(control).visible ? t("показано") : t("скрыто родительским элементом")]);
 													append($$anchor, p_15);
 												}, ($$anchor) => {
-													var p_16 = root_25();
-													var text_53 = only_child(p_16, true);
-													template_effect(($0) => set_text(text_53, $0), [() => t("Существующих скрытых отладочных кнопок не найдено.")]);
+													var p_16 = root_27();
+													var text_56 = only_child(p_16, true);
+													template_effect(($0) => set_text(text_56, $0), [() => t("Существующих скрытых отладочных кнопок не найдено.")]);
 													append($$anchor, p_16);
 												});
-												template_effect(($0) => set_text(text_51, $0), [() => t("Вернуть исходный вид")]);
+												template_effect(($0) => set_text(text_54, $0), [() => t("Вернуть исходный вид")]);
 												delegated("click", button_3, () => $$props.model.revealDebugControls(false));
-												append($$anchor, fragment_24);
+												append($$anchor, fragment_28);
 											};
-											if_block(node_51, ($$render) => {
-												if ($$props.model.debugControls.enabled) $$render(consequent_14);
+											if_block(node_53, ($$render) => {
+												if ($$props.model.debugControls.enabled) $$render(consequent_17);
 											});
-											template_effect(($0) => set_text(text_50, $0), [() => $$props.model.debugControls.enabled ? t("Найти ещё") : t("Показать скрытые кнопки")]);
+											template_effect(($0) => set_text(text_53, $0), [() => $$props.model.debugControls.enabled ? t("Найти ещё") : t("Показать скрытые кнопки")]);
 											delegated("click", button_2, () => $$props.model.revealDebugControls(true));
-											append($$anchor, fragment_23);
+											append($$anchor, fragment_27);
 										};
-										if_block(node_50, ($$render) => {
-											if ($$props.model.isDemo) $$render(consequent_13);
-											else $$render(alternate_2, -1);
+										if_block(node_52, ($$render) => {
+											if ($$props.model.isDemo) $$render(consequent_16);
+											else $$render(alternate_3, -1);
 										});
-										template_effect(($0) => set_text(text_48, $0), [() => t("Показать существующие скрытые кнопки. Это меняет только видимость; команды могут быть не подключены.")]);
-										append($$anchor, fragment_22);
+										template_effect(($0) => set_text(text_51, $0), [() => t("Показать существующие скрытые кнопки. Это меняет только видимость; команды могут быть не подключены.")]);
+										append($$anchor, fragment_26);
 									};
-									var consequent_16 = ($$anchor) => {
-										var fragment_25 = comment();
-										each(first_child(fragment_25), 17, () => get$2(phases).filter((item) => item.cache), (item) => item.index, ($$anchor, item) => {
-											var fragment_26 = root_30();
-											var p_17 = first_child(fragment_26);
-											var text_54 = only_child(p_17);
+									var consequent_19 = ($$anchor) => {
+										var fragment_29 = comment();
+										each(first_child(fragment_29), 17, () => get$2(phases).filter((item) => item.cache), (item) => item.index, ($$anchor, item) => {
+											var fragment_30 = root_32();
+											var p_17 = first_child(fragment_30);
+											var text_57 = only_child(p_17);
 											var dl_2 = sibling(p_17, 2);
 											each(dl_2, 21, () => get$2(item).cache, index$1, ($$anchor, value, index) => {
-												var div_16 = root_29();
+												var div_16 = root_31();
 												var dt_8 = child(div_16);
-												var text_55 = only_child(dt_8, true);
-												var text_56 = only_child(sibling(dt_8), true);
+												var text_58 = only_child(dt_8, true);
+												var text_59 = only_child(sibling(dt_8), true);
 												reset(div_16);
 												template_effect(($0, $1) => {
-													set_text(text_55, $0);
-													set_text(text_56, $1);
+													set_text(text_58, $0);
+													set_text(text_59, $1);
 												}, [() => t("Поле {n}", { n: index + 1 }), () => Array.isArray(get$2(value)) ? get$2(value).map(number).join(" · ") || t("Пустой список") : number(get$2(value))]);
 												append($$anchor, div_16);
 											});
 											reset(dl_2);
-											template_effect(($0, $1) => set_text(text_54, `${$0 ?? ""} · ${$1 ?? ""}`), [() => experimentalPhaseName(get$2(item).type), () => t("единицы неизвестны")]);
-											append($$anchor, fragment_26);
+											template_effect(($0, $1) => set_text(text_57, `${$0 ?? ""} · ${$1 ?? ""}`), [() => experimentalPhaseName(get$2(item).type), () => t("единицы неизвестны")]);
+											append($$anchor, fragment_30);
 										}, ($$anchor) => {
-											var p_18 = root_31();
-											var text_57 = only_child(p_18, true);
-											template_effect(($0) => set_text(text_57, $0), [() => t("Google не передал CacheSizes.")]);
+											var p_18 = root_33();
+											var text_60 = only_child(p_18, true);
+											template_effect(($0) => set_text(text_60, $0), [() => t("Google не передал CacheSizes.")]);
 											append($$anchor, p_18);
 										});
-										append($$anchor, fragment_25);
+										append($$anchor, fragment_29);
 									};
-									var alternate_3 = ($$anchor) => {
-										var p_19 = root_32();
-										var text_58 = only_child(p_19, true);
-										template_effect(() => set_text(text_58, get$2(tool).reason));
+									var alternate_4 = ($$anchor) => {
+										var p_19 = root_34();
+										var text_61 = only_child(p_19, true);
+										template_effect(() => set_text(text_61, get$2(tool).reason));
 										append($$anchor, p_19);
 									};
-									if_block(node_46, ($$render) => {
-										if (get$2(tool).id === "latency") $$render(consequent_11);
-										else if (get$2(tool).id === "modelSize") $$render(consequent_12, 1);
-										else if (get$2(tool).id === "debug") $$render(consequent_15, 2);
-										else if (get$2(tool).id === "cache") $$render(consequent_16, 3);
-										else $$render(alternate_3, -1);
+									if_block(node_48, ($$render) => {
+										if (get$2(tool).id === "latency") $$render(consequent_14);
+										else if (get$2(tool).id === "modelSize") $$render(consequent_15, 1);
+										else if (get$2(tool).id === "debug") $$render(consequent_18, 2);
+										else if (get$2(tool).id === "cache") $$render(consequent_19, 3);
+										else $$render(alternate_4, -1);
 									});
 									reset(div_13);
 									reset(details_2);
 									template_effect(($0) => {
-										set_text(text_38, get$2(tool).label);
-										set_text(text_39, $0);
+										set_text(text_41, get$2(tool).label);
+										set_text(text_42, $0);
 									}, [() => t("Что это")]);
 									append($$anchor, details_2);
 								});
 								template_effect(($0, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) => {
-									set_text(text_22, $0);
-									set_text(text_23, $1);
-									set_text(text_24, $2);
-									set_text(text_25, $3);
-									set_text(text_26, $4);
-									set_text(text_27, $5);
-									set_text(text_28, $6);
-									set_text(text_29, $7);
-									set_text(text_30, $8);
-									set_text(text_31, $9);
-									set_text(text_32, $10);
-									set_text(text_33, $11);
-									set_text(text_34, $12);
-									set_text(text_37, $13);
+									set_text(text_25, $0);
+									set_text(text_26, $1);
+									set_text(text_27, $2);
+									set_text(text_28, $3);
+									set_text(text_29, $4);
+									set_text(text_30, $5);
+									set_text(text_31, $6);
+									set_text(text_32, $7);
+									set_text(text_33, $8);
+									set_text(text_34, $9);
+									set_text(text_35, $10);
+									set_text(text_36, $11);
+									set_text(text_37, $12);
+									set_text(text_40, $13);
 								}, [
 									() => t("Этапы и загрузка"),
 									() => t("Сигнал Worker"),
@@ -22719,21 +23565,18 @@
 									() => number(get$2(signals).startup?.failures),
 									() => t("Ожидание и применение результата: отдельные замеры пока недоступны.")
 								]);
-								append($$anchor, fragment_18);
+								append($$anchor, fragment_22);
 							},
 							$$slots: { default: true }
 						});
 					});
-					append($$anchor, fragment);
+					append($$anchor, fragment_4);
 				},
 				$$slots: { default: true }
 			});
 		});
 		reset(div);
-		template_effect(($0, $1) => {
-			set_text(text$2, ` ${$0 ?? ""}`);
-			set_text(text_1, $1);
-		}, [() => t("Основной"), () => $$props.model.isDemo ? t("Демо-данные") : get$2(tab) === "relations" ? t("По выбранной ячейке") : `${t("Последний снимок")}${get$2(received) ? " · " + get$2(received) : ""}`]);
+		template_effect(($0) => set_text(text$2, ` ${$0 ?? ""}`), [() => t("Основной")]);
 		delegated("click", button, () => $$props.model.setExperimental(false));
 		append($$anchor, div);
 		pop();
@@ -23346,7 +24189,23 @@
 			return this.snapshot?.available === true;
 		}
 		get workerNote() {
-			return this.snapshot?.timingSetup?.verification === "anchors" ? t("Google изменил код обвязки Worker. Замеры включены: Worker принят по отпечатку пути сообщений, движок не сверён.") : null;
+			const setup = this.snapshot?.timingSetup;
+			if (setup?.source !== "userscript" || setup.status !== "enabled" || setup.bootstrap !== "rewritten") return null;
+			if (setup.effectiveness === "ineffective") return t("Таймеры ячеек не включились — видны только итоги фаз.");
+			if (!setup.confirmed || setup.labelState === "pending" || setup.verification === "listed") return null;
+			if (setup.verification === "glue") return t("Google обновил вычисления. Worker сверён: код обвязки совпал с проверенным офлайн.");
+			if (setup.verification) return t("Google обновил вычисления. Код обвязки Worker изменился, но путь сообщений совпал с проверенным офлайн.");
+			return this.snapshot?.trust?.verdict === "ok" ? t("Google обновил вычисления. Замеры включены: формат запуска и результатов проверен в браузере, офлайн-сверка Worker ещё не проведена.") : null;
+		}
+		get stale() {
+			return this.period === "last" && this.snapshot?.stale === true;
+		}
+		get strict() {
+			try {
+				return this.api.status().strict === true;
+			} catch {
+				return false;
+			}
 		}
 		get experimental() {
 			return this.snapshot?.experimental ?? null;
@@ -23424,7 +24283,7 @@
 					this.lastScopeStamp = stamp;
 				}
 				const setup = this.api.status();
-				this.needsSetup = ["disabled", "missed"].includes(setup.status);
+				this.needsSetup = setup.status === "disabled" || setup.status === "missed" && setup.missed !== "bootstrap";
 				this.error = result.request?.state === "timeout" ? t("Нет нового результата за 120 с. Автоматического повтора нет.") : result.request?.state === "error" ? t("Расчёт не запущен.") : result.request?.state === "queued-without-measurements" ? t("Пересчёт запущен. Замеры пока недоступны: {reason}", { reason: result.request.measurementWarning }) : result.measurementError ?? setup.error ?? (setup.status === "waiting" ? t("Ожидаем раннего подключения к вычислениям…") : null);
 			} catch (error) {
 				this.error = error.message;
@@ -23465,6 +24324,14 @@
 		setTimers(value) {
 			try {
 				this.api.setEnabled(value);
+				location.reload();
+			} catch (error) {
+				this.error = error.message;
+			}
+		}
+		setStrict(value) {
+			try {
+				this.api.setStrict(value);
 				location.reload();
 			} catch (error) {
 				this.error = error.message;
@@ -23709,6 +24576,8 @@ svg {
   font-size: 10px;
   color: var(--muted);
 }
+.strict-toggle { margin-top: 4px; color: var(--ink); }
+.ui-help .setting-hint { margin: 2px 0 0; font-size: 10px; }
 .help-divider {
   height: 1px;
   background: var(--line);
@@ -23853,6 +24722,7 @@ svg {
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
+.result-period .stale-mark, .experiment-heading .stale-mark { color: #b06000; }
 .tabs-line {
   display: flex;
   flex-shrink: 0;
@@ -24621,14 +25491,20 @@ a.cell-address:focus-visible {
 		setLocale(detectLocale(document));
 		const bookId = bookIdFromURL(location.href);
 		if (bookId) {
-			let setting, enabled = true, storageError = null;
+			let storage = null, setting, strictSetting, enabled = true, strict = false, storageError = null;
 			try {
-				setting = preferences(localStorage, bookId);
+				storage = localStorage;
+				setting = preferences(storage, bookId);
+				strictSetting = strictPreference(storage);
 				enabled = setting.enabled();
+				strict = strictSetting.enabled();
 			} catch {
 				storageError = t("Настройка замеров недоступна: браузер запретил localStorage.");
 			}
-			const timing = installTiming(globalThis, enabled);
+			const timing = installTiming(globalThis, enabled, {
+				storage,
+				strict
+			});
 			const native = createAdapter(timing);
 			const debug = createDebugControls(document, (el) => getComputedStyle(el));
 			const api = Object.freeze({
@@ -24657,6 +25533,14 @@ a.cell-address:focus-visible {
 					return {
 						reloadRequired: true,
 						enabled: !!value
+					};
+				},
+				setStrict(value) {
+					if (!strictSetting) throw Error(storageError);
+					strictSetting.set(!!value);
+					return {
+						reloadRequired: true,
+						strict: !!value
 					};
 				}
 			});
