@@ -1,0 +1,76 @@
+# Scheduled watch for Google Sheets builds. Source: SheetsScope tools/watch/ (published here by
+# `bun run publish:watch`; edit it there, not in this repository).
+#
+# watch/check.mjs fetches the public example sheet anonymously from docs.google.com (no login, no
+# browser), checks every served build offline and exits 0 (nothing to do), 1 (needs a human) or
+# 2 (watch or network error). Exit 1 opens an issue labelled google-watch, or comments on the open
+# one that already names those builds or findings when a build's findings changed (report.mjs
+# planIssue). Exit 2 fails the run and opens no issue.
+name: Google Sheets watch
+
+on:
+  schedule:
+    - cron: '23 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: google-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: watch
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Check Google Sheets builds
+        id: check
+        run: |
+          status=0
+          node watch/check.mjs --json report.json --markdown report.md || status=$?
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          if [ -f report.md ]; then cat report.md >> "$GITHUB_STEP_SUMMARY"; fi
+          if [ "$status" -gt 1 ]; then
+            echo "::error::watch/check.mjs exited $status (watch or network error); no issue is opened"
+            exit "$status"
+          fi
+
+      - name: Open or update the issue
+        if: steps.check.outputs.status == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh label create google-watch --color B60205 --description 'Google Sheets build needs attention (watch/check.mjs)' --force
+          gh issue list --label google-watch --state open --limit 100 --json number,title,body,comments > issues.json
+          node watch/check.mjs --plan-issue issues.json --report report.json > plan.json
+          case "$(jq -r .action plan.json)" in
+            create) gh issue create --title "$(jq -r .title plan.json)" --label google-watch --body-file report.md ;;
+            comment) gh issue comment "$(jq -r .number plan.json)" --body-file report.md ;;
+            none) echo "Issue unchanged: $(jq -r .reason plan.json)" ;;
+            *) echo "::error::unexpected issue plan: $(cat plan.json)"; exit 1 ;;
+          esac
+
+      - name: Upload the report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: google-watch-report
+          path: |
+            report.json
+            report.md
+          retention-days: 7
+          if-no-files-found: ignore
