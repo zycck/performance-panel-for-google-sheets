@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Performance Panel for Google Sheets
 // @namespace    urn:sheets-scope:userscript
-// @version      0.6.1
+// @version      0.6.2
 // @description  Нативная панель производительности Google Таблиц: пересчёт листа и медленные ячейки.
 // @match        https://docs.google.com/spreadsheets/*
 // @run-at       document-start
@@ -1762,13 +1762,18 @@
 					item[2][2],
 					item[2][3]
 				]];
-				if (item[3] != null) return [item[1], [
-					item[3][1],
-					item[3][2],
-					item[3][4],
-					item[3][3],
-					item[3][5]
-				]];
+				if (item[3] != null) {
+					const [, sheetId, startRow, endRow, startCol, endCol] = item[3];
+					const lastRow = typeof endRow === "number" && typeof startRow === "number" && endRow > startRow ? endRow - 1 : endRow;
+					const lastCol = typeof endCol === "number" && typeof startCol === "number" && endCol > startCol ? endCol - 1 : endCol;
+					return [item[1], [
+						sheetId,
+						startRow,
+						startCol,
+						lastRow,
+						lastCol
+					]];
+				}
 				return [item[1], null];
 			});
 			return result;
@@ -4401,7 +4406,7 @@
 	}
 	//#endregion
 	//#region userscript/src/adapter.js
-	var SCRIPT_VERSION = "0.6.1";
+	var SCRIPT_VERSION = "0.6.2";
 	function measurements$1(timing) {
 		try {
 			return timing.results();
@@ -35089,14 +35094,15 @@ dd.svelte-1l3ccpj {font:500 13px/18px var(--font-text);}`
 		}
 		if (experimental.modelLoad?.available) {
 			const ml = experimental.modelLoad;
+			const v = ml.values ?? {};
 			const loadRows = [
-				["Загрузка модели (всего), мс", ml.modelLoadMs != null ? ms(ml.modelLoadMs) : null],
-				["Загрузок модели", ml.numModelLoads != null ? count(ml.numModelLoads) : null],
-				["До старта расчёта, мс", ml.modelLoadBeforeCalculationStartMs != null ? ms(ml.modelLoadBeforeCalculationStartMs) : null],
-				["Загрузка с сервера, мс", ml.modelLoadServerMs != null ? ms(ml.modelLoadServerMs) : null],
-				["Применение снапшота, мс", ml.modelLoadServerSnapshotApplyMs != null ? ms(ml.modelLoadServerSnapshotApplyMs) : null],
-				["Очередь правок, мс", ml.modelLoadPendingQueueApplyMs != null ? ms(ml.modelLoadPendingQueueApplyMs) : null],
-				["Загружено подмоделей", ml.submodelsLoaded != null ? count(ml.submodelsLoaded) : null]
+				["Загрузка модели (всего), мс", v.modelLoadMs != null ? ms(v.modelLoadMs) : null],
+				["Загрузок модели", v.numModelLoads != null ? count(v.numModelLoads) : null],
+				["До старта расчёта, мс", v.modelLoadBeforeCalculationStartMs != null ? ms(v.modelLoadBeforeCalculationStartMs) : null],
+				["Загрузка с сервера, мс", v.modelLoadServerMs != null ? ms(v.modelLoadServerMs) : null],
+				["Применение снапшота, мс", v.modelLoadServerSnapshotApplyMs != null ? ms(v.modelLoadServerSnapshotApplyMs) : null],
+				["Очередь правок, мс", v.modelLoadPendingQueueApplyMs != null ? ms(v.modelLoadPendingQueueApplyMs) : null],
+				["Загружено подмоделей", ml.submodels?.loaded != null ? count(ml.submodels.loaded) : null]
 			].filter(([, value]) => value != null);
 			if (loadRows.length) {
 				out.push("", "### Загрузка модели (Worker)", "", "_Показатели загрузки внутри Worker; не равны полной категории «Загрузка»._", "", "| Показатель | Значение |", "|---|--:|");
@@ -43596,7 +43602,7 @@ dl.svelte-zjhw7n, dd.svelte-zjhw7n {margin:0;}
 		trigger.setAttribute("aria-controls", surface.id);
 		root.append(trigger, surface);
 		const source = new LiveSource(api, {
-			version: "0.6.1",
+			version: "0.6.2",
 			series,
 			...nav ? { nav } : {}
 		});
