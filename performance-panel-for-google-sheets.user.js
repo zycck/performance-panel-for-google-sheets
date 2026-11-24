@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Performance Panel for Google Sheets
 // @namespace    urn:sheets-scope:userscript
-// @version      0.6.0
+// @version      0.6.1
 // @description  Нативная панель производительности Google Таблиц: пересчёт листа и медленные ячейки.
 // @match        https://docs.google.com/spreadsheets/*
 // @run-at       document-start
@@ -413,7 +413,7 @@
 		"Сумма фаз и максимумы ячеек с раннего подключения к Worker. Пропущенные результаты не восстанавливаются.": "Stage totals and cell maximums since the script connected to the Worker. Missed results are not recovered.",
 		"Дождитесь текущего расчёта Sheets.": "Wait for the current Sheets calculation to finish.",
 		"Выберите существующий лист.": "Pick an existing sheet.",
-		"Очередь расчёта этой версии недоступна.": "The calculation queue is unavailable in this version.",
+		"Пересчёт отдельного листа недоступен в этой сборке Google (доступен пересчёт всей книги).": "Single-sheet recalculation is unavailable in this Google build (full-workbook recalculation is available).",
 		"Лист этого типа не поддерживается.": "This kind of sheet is not supported.",
 		"Запуск расчёта уже выполняется.": "A calculation is already starting.",
 		"Идёт серия пересчётов.": "A recalculation series is running.",
@@ -3138,7 +3138,23 @@
 			for (const [name, fn] of gridProtos) if (fn.length === 2 && source$1(fn).includes("\"row position cannot be negative (got: %s)\"")) found.cell.add(JSON.stringify([name]));
 		}
 		const one = (role) => found[role].size === 1 ? JSON.parse([...found[role]][0]) : null;
-		const storage = one("storage"), cell = one("cell"), sheetName = one("sheetName"), chunkBounds = one("chunkBounds");
+		const storage = one("storage"), cell = one("cell"), sheetName = one("sheetName");
+		let chunkBounds = one("chunkBounds");
+		if (!chunkBounds && storage?.[0] && gridProtos.length && sampleGrid) {
+			const getterRe = new RegExp(`^${fnHead}\\(\\)\\{return this\\.${storage[0].replace(/\$/g, "\\$")}\\.(${identifier})\\}$`);
+			const gridFields = /* @__PURE__ */ new Set();
+			for (const [, fn] of gridProtos) {
+				const m = fn.length === 0 && source$1(fn).match(getterRe);
+				if (m) gridFields.add(m[1]);
+			}
+			const chunk = own$3(sampleGrid, storage[0]);
+			if (gridFields.size >= 2 && chunk && typeof chunk === "object") {
+				const axisRe = new RegExp(`${identifier}\\(${identifier},0\\)\\?this\\.(${identifier}):this\\.(${identifier})`, "g");
+				const pairs = /* @__PURE__ */ new Set();
+				for (const [, fn] of prototypeFunctions(chunk)) for (const m of source$1(fn).matchAll(axisRe)) if (m[1] !== m[2] && gridFields.has(m[1]) && gridFields.has(m[2])) pairs.add(JSON.stringify([m[1], m[2]]));
+				if (pairs.size === 1) chunkBounds = JSON.parse([...pairs][0]);
+			}
+		}
 		return {
 			storage: storage?.[0],
 			storageReady: storage?.[1],
@@ -3207,15 +3223,18 @@
 		note("providers", [...providers]);
 		if (!providers.size) return null;
 		const getterPattern = new RegExp(`^${fnHead}\\(\\)\\{return (${identifier})\\(\\)\\.${identifier}\\(\\)\\}$`);
-		const candidates = [];
+		const providerCandidates = [], fallbackCandidates = [];
 		for (const name of names) {
 			const fn = own$3(scope, name);
 			if (typeof fn !== "function" || fn.length !== 0) continue;
 			const match = source$1(fn).match(getterPattern);
-			if (match && providers.has(match[1])) candidates.push([name, fn]);
+			if (!match) continue;
+			if (providers.has(match[1])) providerCandidates.push([name, fn]);
+			else fallbackCandidates.push([name, fn]);
 		}
+		const candidates = [...providerCandidates, ...fallbackCandidates];
 		note("getterCandidates", candidates.map(([name]) => name));
-		if (candidates.length > 20) return null;
+		if (candidates.length > 30) return null;
 		for (const [getterName, getter] of candidates) {
 			const miss = (reason) => note("candidate", {
 				getter: getterName,
@@ -3320,8 +3339,8 @@
 				miss("oO/Vod not unique");
 				continue;
 			}
-			const globals = {
-				dx: getterName,
+			const globals = { dx: getterName };
+			const sheetRecalcRoles = {
 				ns,
 				Woh,
 				Fj,
@@ -3332,11 +3351,8 @@
 				jmg,
 				tmg
 			};
-			if (typeof own$3(scope, tmg) !== "object") {
-				miss("queue constant is not an object");
-				continue;
-			}
 			const badRoles = [];
+			if (typeof own$3(scope, tmg) !== "object") badRoles.push(`tmg=${tmg}`);
 			for (const role of [
 				"ns",
 				"Woh",
@@ -3346,11 +3362,13 @@
 				"pP",
 				"qP",
 				"jmg"
-			]) if (!await hasShape(own$3(scope, globals[role]), shapes[role], role === "ns" ? { skipInit: true } : void 0)) badRoles.push(`${role}=${globals[role]}`);
-			if (badRoles.length) {
-				miss(`helper shape mismatch: ${badRoles.join(", ")}`);
-				continue;
-			}
+			]) if (!await hasShape(own$3(scope, sheetRecalcRoles[role]), shapes[role], role === "ns" ? { skipInit: true } : void 0)) badRoles.push(`${role}=${sheetRecalcRoles[role]}`);
+			const sheetRecalc = badRoles.length === 0;
+			note("sheetRecalc", {
+				supported: sheetRecalc,
+				missing: badRoles
+			});
+			if (sheetRecalc) Object.assign(globals, sheetRecalcRoles);
 			const rlMatches = [];
 			for (const name of names) {
 				const fn = own$3(scope, name);
@@ -3394,6 +3412,7 @@
 				id: scopeName ? `auto-structural:${scopeName}` : "auto-structural",
 				scope,
 				scopeName,
+				sheetRecalc,
 				workerHost: null,
 				globals,
 				methods,
@@ -4382,7 +4401,7 @@
 	}
 	//#endregion
 	//#region userscript/src/adapter.js
-	var SCRIPT_VERSION = "0.6.0";
+	var SCRIPT_VERSION = "0.6.1";
 	function measurements$1(timing) {
 		try {
 			return timing.results();
@@ -4760,6 +4779,8 @@
 				await verify(["t4e"], { t4e: model[native.member("t4e")] });
 				if (sheetId !== null) {
 					if (typeof sheetId !== "string" || !sheets(model).some((s) => s.id === sheetId)) throw failure("no-sheet", t("Выберите существующий лист."));
+					const { bookGrid, modelStore, modelQueue } = native.build.fields;
+					if (!native.build.sheetRecalc || !native.symbol("tmg") || !modelStore || !modelQueue || !bookGrid) throw failure("unsupported", t("Пересчёт отдельного листа недоступен в этой сборке Google (доступен пересчёт всей книги)."));
 					await verify([
 						"ns",
 						"Woh",
@@ -4770,8 +4791,6 @@
 						"qP",
 						"jmg"
 					]);
-					const { bookGrid, modelStore, modelQueue } = native.build.fields;
-					if (!native.symbol("tmg") || !modelStore || !modelQueue || !bookGrid) throw failure("unsupported", t("Очередь расчёта этой версии недоступна."));
 					if (!method(model, "oO", sheetId) || method(model, "Vod", sheetId) !== 0 || !method(model, "wm")[bookGrid](sheetId)) throw failure("unsupported", t("Лист этого типа не поддерживается."));
 				}
 				if (progress()) throw failure("busy", t("Дождитесь текущего расчёта Sheets."));
@@ -4871,6 +4890,7 @@
 						"sheetNamePath"
 					].filter((f) => !b.fields[f]),
 					missingGridBounds: ["chunkRows", "chunkCols"].filter((f) => !b.fields[f]),
+					sheetRecalcSupported: b.sheetRecalc === true,
 					canRegisterNativePanel: !!b.registration?.canRegister
 				};
 				const cap = await capacity(model);
@@ -43576,7 +43596,7 @@ dl.svelte-zjhw7n, dd.svelte-zjhw7n {margin:0;}
 		trigger.setAttribute("aria-controls", surface.id);
 		root.append(trigger, surface);
 		const source = new LiveSource(api, {
-			version: "0.6.0",
+			version: "0.6.1",
 			series,
 			...nav ? { nav } : {}
 		});
